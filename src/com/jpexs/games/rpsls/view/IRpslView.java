@@ -40,7 +40,17 @@ public interface IRpslView {
 
     public void removeSelectWeaponListener(SelectWeaponListener listener);
 
+    public void addSetStartupWeaponsListener(SetStartupWeaponsListener listener);
+
+    public void removeSetStartupWeaponsListener(SetStartupWeaponsListener listener);
+
+    public void addExitListener(ActionListener listener);
+
+    public void removeExitListener(ActionListener listener);
+
     public void initView();
+
+    public void destroyView();
 
     public int getTeam();
 

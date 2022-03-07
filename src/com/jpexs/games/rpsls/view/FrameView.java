@@ -1,5 +1,6 @@
 package com.jpexs.games.rpsls.view;
 
+import com.jpexs.games.rpsls.Main;
 import com.jpexs.games.rpsls.model.Attack;
 import com.jpexs.games.rpsls.model.Move;
 import com.jpexs.games.rpsls.model.Phase;
@@ -27,9 +28,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.EventObject;
 import java.util.List;
 import java.util.Objects;
 import java.util.Timer;
@@ -41,6 +45,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -95,6 +100,7 @@ public class FrameView extends JFrame implements IRpslView {
     private List<ActionListener> proceedListeners = new ArrayList<>();
     private List<MoveListener> moveListeners = new ArrayList<>();
     private List<SelectWeaponListener> selectWeaponListeners = new ArrayList<>();
+    private List<ActionListener> exitListeners = new ArrayList<>();
 
     @Override
     public void addStartListener(ActionListener listener) {
@@ -224,6 +230,32 @@ public class FrameView extends JFrame implements IRpslView {
         }
     }
 
+    @Override
+    public void addSetStartupWeaponsListener(SetStartupWeaponsListener listener) {
+
+    }
+
+    @Override
+    public void removeSetStartupWeaponsListener(SetStartupWeaponsListener listener) {
+
+    }
+
+    @Override
+    public void addExitListener(ActionListener listener) {
+        exitListeners.add(listener);
+    }
+
+    @Override
+    public void removeExitListener(ActionListener listener) {
+        exitListeners.remove(listener);
+    }
+
+    protected void fireExit() {
+        for (ActionListener listener : exitListeners) {
+            listener.actionPerformed(new ActionEvent(this, 0, "EXIT"));
+        }
+    }
+
     private synchronized boolean isFight() {
         return fight;
     }
@@ -237,8 +269,14 @@ public class FrameView extends JFrame implements IRpslView {
         myTeam = team;
 
         setTitle("RPSLS, team " + (team + 1) + " - " + teamColorNames[team]);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(800, 800);
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                fireExit();
+            }
+        });
 
         try {
             spritesImage = ImageIO.read(getClass().getResourceAsStream("/com/jpexs/games/rpsls/graphics/sprites.png"));
@@ -670,11 +708,16 @@ public class FrameView extends JFrame implements IRpslView {
             @Override
             public void actionPerformed(ActionEvent e) {
                 contentPanel.repaint();
-                if (model.getWinner() == myTeam) {
-                    JOptionPane.showMessageDialog(contentPanel, "You won!");
-                } else {
-                    JOptionPane.showMessageDialog(contentPanel, "You lost!");
-                }
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (model.getWinner() == myTeam) {
+                            JOptionPane.showMessageDialog(contentPanel, "You won!");
+                        } else {
+                            JOptionPane.showMessageDialog(contentPanel, "You lost!");
+                        }
+                    }
+                });
 
             }
         });
@@ -757,7 +800,7 @@ public class FrameView extends JFrame implements IRpslView {
         container.add(rightPanel, BorderLayout.EAST);
 
         pack();
-        centerWindow(this);
+        Main.centerWindow(this);
     }
 
     public static BufferedImage dye(BufferedImage image, Color color) {
@@ -804,40 +847,6 @@ public class FrameView extends JFrame implements IRpslView {
                 getWeaponSelectionTop(), SPRITE_WIDTH, SPRITE_HEIGHT);
     }
 
-    public static void centerWindow(Window f) {
-        GraphicsDevice[] allDevices = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
-        int topLeftX, topLeftY, screenX, screenY, windowPosX, windowPosY;
-
-        int screen = 0;
-
-        if (screen < allDevices.length && screen > -1) {
-            topLeftX = allDevices[screen].getDefaultConfiguration().getBounds().x;
-            topLeftY = allDevices[screen].getDefaultConfiguration().getBounds().y;
-
-            screenX = allDevices[screen].getDefaultConfiguration().getBounds().width;
-            screenY = allDevices[screen].getDefaultConfiguration().getBounds().height;
-
-            Insets bounds = Toolkit.getDefaultToolkit().getScreenInsets(allDevices[screen].getDefaultConfiguration());
-            screenX = screenX - bounds.right;
-            screenY = screenY - bounds.bottom;
-        } else {
-            topLeftX = allDevices[0].getDefaultConfiguration().getBounds().x;
-            topLeftY = allDevices[0].getDefaultConfiguration().getBounds().y;
-
-            screenX = allDevices[0].getDefaultConfiguration().getBounds().width;
-            screenY = allDevices[0].getDefaultConfiguration().getBounds().height;
-
-            Insets bounds = Toolkit.getDefaultToolkit().getScreenInsets(allDevices[0].getDefaultConfiguration());
-            screenX = screenX - bounds.right;
-            screenY = screenY - bounds.bottom;
-        }
-
-        windowPosX = ((screenX - f.getWidth()) / 2) + topLeftX;
-        windowPosY = ((screenY - f.getHeight()) / 2) + topLeftY;
-
-        f.setLocation(windowPosX, windowPosY);
-    }
-
     @Override
     public void initView() {
         setVisible(true);
@@ -848,4 +857,8 @@ public class FrameView extends JFrame implements IRpslView {
         return myTeam;
     }
 
+    @Override
+    public void destroyView() {
+        setVisible(false);
+    }
 }

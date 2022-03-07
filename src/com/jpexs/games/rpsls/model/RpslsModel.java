@@ -258,6 +258,30 @@ public class RpslsModel {
         return person.getWeapon();
     }
 
+    /**
+     * WARNING: use only for networkplay
+     *
+     * @param observingTeam
+     * @param location
+     * @param weapon
+     */
+    public void setWeaponAt(int observingTeam, Point location, Weapon weapon) {
+        if (getTeamPhase(observingTeam) != Phase.WEAPONS) {
+            throw new RuntimeException("Cannot set weapons in this phase");
+        }
+        if (isPointOutsideBoard(location)) {
+            throw new IllegalArgumentException("Not valid point");
+        }
+        Person person = getPersonOnLocation(location);
+        if (person == null) {
+            throw new IllegalArgumentException("Not a person");
+        }
+        if (person.getSpecialItem() != null && weapon != null) {
+            throw new IllegalArgumentException("Cannot set weapon for person with special item");
+        }
+        person.setWeapon(weapon);
+    }
+
     public boolean isWeaponVisibleAt(int observingTeam, Point location) {
         if (isPointOutsideBoard(location)) {
             return false;
@@ -575,7 +599,7 @@ public class RpslsModel {
         return team == 0 ? 0 : BOARD_HEIGHT - getNumRowsPerTeam();
     }
 
-    private int getNumRowsPerTeam() {
+    public int getNumRowsPerTeam() {
         return (NUM_EACH_WEAPON * Weapon.values().length + SpecialItem.values().length) / BOARD_WIDTH;
     }
 
