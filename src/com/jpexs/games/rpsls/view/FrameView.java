@@ -1,5 +1,12 @@
-package com.jpexs.games.rpsls;
+package com.jpexs.games.rpsls.view;
 
+import com.jpexs.games.rpsls.model.Attack;
+import com.jpexs.games.rpsls.model.Move;
+import com.jpexs.games.rpsls.model.Phase;
+import com.jpexs.games.rpsls.model.Point;
+import com.jpexs.games.rpsls.model.RpslsModel;
+import com.jpexs.games.rpsls.model.SpecialItem;
+import com.jpexs.games.rpsls.model.Weapon;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -22,6 +29,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Timer;
@@ -33,14 +41,12 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-import javax.swing.plaf.basic.BasicSliderUI;
 
 /**
  *
  * @author JPEXS
  */
-public class RpslsView extends JFrame {
+public class FrameView extends JFrame implements IRpslView {
 
     private BufferedImage spritesImage;
     private BufferedImage[] teamSpritesImage;
@@ -81,6 +87,143 @@ public class RpslsView extends JFrame {
 
     private Move trapMove = null;
 
+    private List<SetPointListener> setFlagListeners = new ArrayList<>();
+    private List<SetPointListener> setTrapListeners = new ArrayList<>();
+    private List<SetPointListener> setChooserListeners = new ArrayList<>();
+    private List<ActionListener> startListeners = new ArrayList<>();
+    private List<ActionListener> shuffleListeners = new ArrayList<>();
+    private List<ActionListener> proceedListeners = new ArrayList<>();
+    private List<MoveListener> moveListeners = new ArrayList<>();
+    private List<SelectWeaponListener> selectWeaponListeners = new ArrayList<>();
+
+    @Override
+    public void addStartListener(ActionListener listener) {
+        startListeners.add(listener);
+    }
+
+    @Override
+    public void removeStartListener(ActionListener listener) {
+        startListeners.remove(listener);
+    }
+
+    protected void fireStart() {
+        for (ActionListener listener : startListeners) {
+            listener.actionPerformed(new ActionEvent(this, 0, "START"));
+        }
+    }
+
+    @Override
+    public void addShuffleListener(ActionListener listener) {
+        shuffleListeners.add(listener);
+    }
+
+    @Override
+    public void removeShuffleListener(ActionListener listener) {
+        shuffleListeners.remove(listener);
+    }
+
+    protected void fireShuffle() {
+        for (ActionListener listener : shuffleListeners) {
+            listener.actionPerformed(new ActionEvent(this, 0, "SHUFFLE"));
+        }
+    }
+
+    @Override
+    public void addProceedListener(ActionListener listener) {
+        proceedListeners.add(listener);
+    }
+
+    @Override
+    public void removeProceedListener(ActionListener listener) {
+        proceedListeners.remove(listener);
+    }
+
+    protected void fireProceed() {
+        for (ActionListener listener : proceedListeners) {
+            listener.actionPerformed(new ActionEvent(this, 0, "PROCEED"));
+        }
+    }
+
+    @Override
+    public void addMoveListener(MoveListener listener) {
+        moveListeners.add(listener);
+    }
+
+    @Override
+    public void removeMoveListener(MoveListener listener) {
+        moveListeners.remove(listener);
+    }
+
+    protected void fireMove(Point source, Point destination) {
+        for (MoveListener listener : moveListeners) {
+            listener.move(source, destination);
+        }
+    }
+
+    @Override
+    public void addSetFlagListener(SetPointListener listener) {
+        setFlagListeners.add(listener);
+    }
+
+    @Override
+    public void removeSetFlagListener(SetPointListener listener) {
+        setFlagListeners.remove(listener);
+    }
+
+    protected void fireSetFlag(Point point) {
+        for (SetPointListener listener : setFlagListeners) {
+            listener.setPoint(point);
+        }
+    }
+
+    @Override
+    public void addSetTrapListener(SetPointListener listener) {
+        setTrapListeners.add(listener);
+    }
+
+    @Override
+    public void removeSetTrapListener(SetPointListener listener) {
+        setTrapListeners.remove(listener);
+    }
+
+    protected void fireSetTrap(Point point) {
+        for (SetPointListener listener : setTrapListeners) {
+            listener.setPoint(point);
+        }
+    }
+
+    @Override
+    public void addSetChooserListener(SetPointListener listener) {
+        setChooserListeners.add(listener);
+    }
+
+    @Override
+    public void removeSetChooserListener(SetPointListener listener) {
+        setChooserListeners.remove(listener);
+    }
+
+    protected void fireSetChooser(Point point) {
+        for (SetPointListener listener : setChooserListeners) {
+            listener.setPoint(point);
+        }
+    }
+
+    @Override
+    public void addSelectWeaponListener(SelectWeaponListener listener) {
+        selectWeaponListeners.add(listener);
+    }
+
+    @Override
+    public void removeSelectWeaponListener(SelectWeaponListener listener) {
+        selectWeaponListeners.remove(listener);
+    }
+
+    protected void fireSelectWeapon(Weapon weapon) {
+        for (SelectWeaponListener listener : selectWeaponListeners) {
+            listener.setWeapon(weapon);
+        }
+    }
+
     private synchronized boolean isFight() {
         return fight;
     }
@@ -89,18 +232,18 @@ public class RpslsView extends JFrame {
         this.fight = fight;
     }
 
-    public RpslsView(RpslsModel model, int team) {
+    public FrameView(RpslsModel model, int team) {
         this.model = model;
         myTeam = team;
 
-        setTitle("team " + team);
+        setTitle("RPSLS, team " + (team + 1) + " - " + teamColorNames[team]);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(800, 800);
 
         try {
             spritesImage = ImageIO.read(getClass().getResourceAsStream("/com/jpexs/games/rpsls/graphics/sprites.png"));
         } catch (IOException ex) {
-            Logger.getLogger(RpslsView.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FrameView.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(1);
         }
 
@@ -246,7 +389,7 @@ public class RpslsView extends JFrame {
                 boolean vertical = attack.source.getYForTeam(myTeam) != attack.target.getYForTeam(myTeam);
 
                 int posLeftPixels = BOARD_BORDER + attackPosLeft * FIELD_SIZE + (vertical ? -FIELD_SIZE / 2 : 0);
-                int posTopPixels = BOARD_BORDER + SPRITE_Y_OFFSET + attackPosTop * FIELD_SIZE; // + (vertical ? FIELD_SIZE / 2 : 0);
+                int posTopPixels = BOARD_BORDER + SPRITE_Y_OFFSET + attackPosTop * FIELD_SIZE;
 
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -361,22 +504,22 @@ public class RpslsView extends JFrame {
                     if (model.isWeaponSelectionNeeded(myTeam)) {
                         Weapon weaponToSelect = hilightedWeapon;
                         if (weaponToSelect != null) {
-                            model.selectDuelWeapon(myTeam, weaponToSelect);
+                            fireSelectWeapon(weaponToSelect);
                         }
                         return;
                     }
                     if (hilightedPoint != null) {
                         switch (model.getTeamPhase(myTeam)) {
                             case FLAGS:
-                                model.setFlagPosition(myTeam, hilightedPoint);
+                                fireSetFlag(hilightedPoint);
                                 hilightedPoint = null;
                                 break;
                             case TRAPS:
-                                model.setTrapPosition(myTeam, hilightedPoint);
+                                fireSetTrap(hilightedPoint);
                                 hilightedPoint = null;
                                 break;
                             case CHOOSERS:
-                                model.setChooserPosition(myTeam, hilightedPoint);
+                                fireSetChooser(hilightedPoint);
                                 hilightedPoint = null;
                                 shuffleStartPanel.setVisible(true);
                                 pack();
@@ -386,7 +529,7 @@ public class RpslsView extends JFrame {
                                     if (model.getTeamAt(myTeam, hilightedPoint) == myTeam) {
                                         selectedPoint = hilightedPoint;
                                     } else if (model.getValidMoves(myTeam, selectedPoint).contains(hilightedPoint)) {
-                                        model.move(myTeam, selectedPoint, hilightedPoint);
+                                        fireMove(selectedPoint, hilightedPoint);
                                         selectedPoint = null;
                                     } else {
                                         selectedPoint = null;
@@ -496,7 +639,7 @@ public class RpslsView extends JFrame {
         shuffleButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                model.shuffleWeapons(myTeam);
+                fireShuffle();
             }
         });
         shuffleStartPanel.add(shuffleButton);
@@ -504,7 +647,7 @@ public class RpslsView extends JFrame {
         startButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                model.beginPlay(myTeam);
+                fireStart();
                 shuffleStartPanel.setVisible(false);
                 pack();
             }
@@ -554,7 +697,7 @@ public class RpslsView extends JFrame {
                             @Override
                             public void run() {
                                 setFight(false);
-                                model.proceed(myTeam);
+                                fireProceed();
                             }
 
                         }, 3000);
@@ -574,7 +717,7 @@ public class RpslsView extends JFrame {
                     public void run() {
                         trapMove = null;
                         contentPanel.repaint();
-                        model.proceed(myTeam);
+                        fireProceed();
                     }
                 }, 3000);
             }
@@ -694,4 +837,15 @@ public class RpslsView extends JFrame {
 
         f.setLocation(windowPosX, windowPosY);
     }
+
+    @Override
+    public void initView() {
+        setVisible(true);
+    }
+
+    @Override
+    public int getTeam() {
+        return myTeam;
+    }
+
 }

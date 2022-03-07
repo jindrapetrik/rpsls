@@ -1,5 +1,8 @@
 package com.jpexs.games.rpsls;
 
+import com.jpexs.games.rpsls.model.RpslsModel;
+import com.jpexs.games.rpsls.view.FrameView;
+import com.jpexs.games.rpsls.view.IRpslView;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -22,11 +25,10 @@ public class Main {
         }
 
         RpslsModel model = new RpslsModel();
-        RpslsView view0 = new RpslsView(model, 0);
-        view0.setVisible(true);
-
-        RpslsView view1 = new RpslsView(model, 1);
-        view1.setVisible(true);
+        RpslsController controller = new RpslsController(model);
+        controller.addView(new FrameView(model, 0));
+        controller.addView(new FrameView(model, 1));
+        controller.start();
     }
 
 }

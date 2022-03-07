@@ -1,4 +1,4 @@
-package com.jpexs.games.rpsls;
+package com.jpexs.games.rpsls.model;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

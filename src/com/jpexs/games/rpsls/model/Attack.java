@@ -1,4 +1,4 @@
-package com.jpexs.games.rpsls;
+package com.jpexs.games.rpsls.model;
 
 /**
  *
