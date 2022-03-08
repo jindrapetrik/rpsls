@@ -17,13 +17,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.Toolkit;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -33,7 +28,6 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.EventObject;
 import java.util.List;
 import java.util.Objects;
 import java.util.Timer;
@@ -71,6 +65,8 @@ public class FrameView extends JFrame implements IRpslView {
 
     private final int SPRITE_WIDTH = 100;
     private final int SPRITE_HEIGHT = 100;
+
+    private final int WEAPON_SELECTION_TOP_HEIGHT = 30;
 
     private int myTeam = RpslsModel.NO_TEAM;
 
@@ -396,7 +392,13 @@ public class FrameView extends JFrame implements IRpslView {
             private void paintWeaponSelection(Graphics g) {
                 g.setColor(Color.yellow);
                 int weaponsCount = Weapon.values().length;
-                g.fillRect(BOARD_BORDER, getWeaponSelectionTop(), model.getBoardWidth() * FIELD_SIZE, FIELD_SIZE);
+                int selectionTop = getWeaponSelectionTop();
+                g.fillRect(BOARD_BORDER, selectionTop, model.getBoardWidth() * FIELD_SIZE, WEAPON_SELECTION_TOP_HEIGHT + FIELD_SIZE);
+                g.setColor(Color.black);
+                g.setFont(g.getFont().deriveFont(20f));
+                String textToPrint = "Select weapon";
+                int textWidth = g.getFontMetrics().stringWidth(textToPrint);
+                g.drawString(textToPrint, BOARD_BORDER + FIELD_SIZE * model.getBoardWidth() / 2 - textWidth / 2, selectionTop + 5 + g.getFont().getSize());
                 for (int i = 0; i < weaponsCount; i++) {
                     Rectangle drawRect = getWeaponSelectionRect(Weapon.values()[i]);
                     paintSprite(g, drawRect.x, drawRect.y, myTeam, 2 + i, 10, false);
@@ -838,13 +840,23 @@ public class FrameView extends JFrame implements IRpslView {
     }
 
     private int getWeaponSelectionTop() {
-        return BOARD_BORDER + FIELD_SIZE * model.getBoardHeight() / 2 - FIELD_SIZE / 2;
+        Point source = model.getDuelSource();
+        Point target = model.getDuelTarget();
+
+        int minY = Math.min(source.getYForTeam(myTeam), target.getYForTeam(myTeam));
+        int maxY = Math.max(source.getYForTeam(myTeam), target.getYForTeam(myTeam));
+
+        if (maxY < model.getBoardHeight() / 2) {
+            return BOARD_BORDER + maxY * FIELD_SIZE + FIELD_SIZE;
+        } else {
+            return BOARD_BORDER + minY * FIELD_SIZE - FIELD_SIZE + SPRITE_Y_OFFSET - WEAPON_SELECTION_TOP_HEIGHT;
+        }
     }
 
     private Rectangle getWeaponSelectionRect(Weapon weapon) {
         int weaponsCount = Weapon.values().length;
         return new Rectangle(BOARD_BORDER + FIELD_SIZE * model.getBoardWidth() / 2 - SPRITE_WIDTH * weaponsCount / 2 + weapon.ordinal() * SPRITE_WIDTH,
-                getWeaponSelectionTop(), SPRITE_WIDTH, SPRITE_HEIGHT);
+                getWeaponSelectionTop() + WEAPON_SELECTION_TOP_HEIGHT, SPRITE_WIDTH, SPRITE_HEIGHT);
     }
 
     @Override

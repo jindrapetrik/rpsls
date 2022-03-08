@@ -192,6 +192,20 @@ public class RpslsModel {
         proceedAction = null;
     }
 
+    public Point getDuelSource() {
+        if (duel == null) {
+            return null;
+        }
+        return duel[0];
+    }
+
+    public Point getDuelTarget() {
+        if (duel == null) {
+            return null;
+        }
+        return duel[1];
+    }
+
     private void requestProceed(ActionListener proceedAction) {
         proceed = new boolean[]{false, false};
         this.proceedAction = proceedAction;
