@@ -31,6 +31,8 @@ import javax.swing.UnsupportedLookAndFeelException;
  */
 public class Main {
 
+    public static final String VERSION_STRING = "v0.1";
+
     private static final GameType defaultGameType = GameType.SMALL;
 
     public static final int PROTOCOL_VERSION_MAJOR = 1;
