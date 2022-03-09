@@ -41,6 +41,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
 /**
@@ -51,6 +52,8 @@ public class FrameView extends JFrame implements IRpslView {
 
     private BufferedImage spritesImage;
     private BufferedImage[] teamSpritesImage;
+
+    private BufferedImage manualImage;
     private RpslsModel model;
 
     private Color[] teamColors = new Color[]{Color.red, Color.blue};
@@ -90,7 +93,7 @@ public class FrameView extends JFrame implements IRpslView {
 
     private Weapon hilightedWeapon = null;
 
-    private JPanel rightPanel;
+    private JPanel leftPanel;
 
     private Move trapMove = null;
     private int trapPhase = 0;
@@ -315,6 +318,7 @@ public class FrameView extends JFrame implements IRpslView {
 
         try {
             spritesImage = ImageIO.read(getClass().getResourceAsStream("/com/jpexs/games/rpsls/graphics/sprites.png"));
+            manualImage = ImageIO.read(getClass().getResourceAsStream("/com/jpexs/games/rpsls/graphics/manual.png"));
         } catch (IOException ex) {
             Logger.getLogger(FrameView.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(1);
@@ -781,13 +785,13 @@ public class FrameView extends JFrame implements IRpslView {
         contentPanel.addMouseMotionListener(mouseAdapter);
 
         contentPanel.setPreferredSize(new Dimension(model.getBoardWidth() * FIELD_SIZE + 2 * BOARD_BORDER, model.getBoardHeight() * FIELD_SIZE + 2 * BOARD_BORDER));
-        container.add(contentPanel, BorderLayout.CENTER);
+        container.add(new JScrollPane(contentPanel), BorderLayout.CENTER);
 
         model.addUpdateListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 contentPanel.repaint();
-                rightPanel.repaint();
+                leftPanel.repaint();
             }
         });
 
@@ -870,10 +874,30 @@ public class FrameView extends JFrame implements IRpslView {
             }
         });
 
-        rightPanel = new JPanel() {
+        leftPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
+
+                g.setColor(Color.black);
+                g.drawRect(10, 110, getWidth() - 20, getHeight() - 1 - 200);
+                g.setColor(Color.white);
+                g.fillOval(10, getHeight() - 200, 200, 200);
+                g.setColor(Color.black);
+                g.drawOval(10, getHeight() - 200, 200, 200);
+                g.setColor(Color.white);
+                g.fillRect(11, 110, getWidth() - 20 - 1, getHeight() - 200);
+
+                int ow = manualImage.getWidth();
+                int oh = manualImage.getHeight();
+                int w = getWidth() - 20;
+
+                int h = w * oh / ow;
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                g.drawImage(manualImage, 10, 10, 10 + w, 10 + h, 0, 0, ow, oh, null);
+
                 int currentTeam = model.getTeamOnTurn();
                 int textWidth;
                 String textToPrint;
@@ -883,28 +907,30 @@ public class FrameView extends JFrame implements IRpslView {
                     g.setColor(Color.black);
                     textToPrint = "Team on turn: " + teamColorNames[currentTeam];
                     textWidth = g.getFontMetrics().stringWidth(textToPrint);
-                    g.drawString(textToPrint, getWidth() / 2 - textWidth / 2, getHeight() / 2 - 20);
+                    g.drawString(textToPrint, getWidth() / 2 - textWidth / 2, h + 30);
 
                     g.setColor(teamColors[currentTeam]);
                     int teamRectWidth = 50;
-                    g.fillRect(getWidth() / 2 - teamRectWidth / 2, getHeight() / 2, teamRectWidth, 30);
+                    g.fillRect(getWidth() / 2 - teamRectWidth / 2, h + 50, teamRectWidth, 30);
 
                 }
                 if (model.isWaitingOnOpponent(myTeam)) {
                     g.setColor(Color.black);
                     textToPrint = "Waiting for opponent...";
                     textWidth = g.getFontMetrics().stringWidth(textToPrint);
-                    g.drawString(textToPrint, getWidth() / 2 - textWidth / 2, getHeight() / 2 + 60);
+                    g.drawString(textToPrint, getWidth() / 2 - textWidth / 2, h + 150);
                 }
+
             }
 
         };
-        rightPanel.setPreferredSize(new Dimension(200, 100));
+        leftPanel.setPreferredSize(new Dimension(220, 100));
 
-        container.add(rightPanel, BorderLayout.EAST);
+        container.add(leftPanel, BorderLayout.WEST);
 
         pack();
         Main.centerWindow(this);
+        Main.setWindowIcon(this);
     }
 
     public static BufferedImage dye(BufferedImage image, Color color) {

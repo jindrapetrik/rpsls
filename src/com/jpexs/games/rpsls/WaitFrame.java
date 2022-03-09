@@ -57,5 +57,6 @@ public class WaitFrame extends JFrame {
         setSize(300, 150);
         setResizable(false);
         Main.centerWindow(this);
+        Main.setWindowIcon(this);
     }
 }

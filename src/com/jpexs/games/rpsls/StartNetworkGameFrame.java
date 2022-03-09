@@ -22,6 +22,7 @@ import javax.swing.JTextField;
 public class StartNetworkGameFrame extends JFrame {
 
     public StartNetworkGameFrame() {
+        setTitle("RPSLS - Start network game");
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -67,7 +68,9 @@ public class StartNetworkGameFrame extends JFrame {
         container.add(buttonsPanel);
 
         pack();
+        setResizable(false);
         Main.centerWindow(this);
+        Main.setWindowIcon(this);
     }
 
 }

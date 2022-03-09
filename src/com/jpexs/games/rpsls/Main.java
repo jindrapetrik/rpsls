@@ -11,9 +11,15 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
@@ -32,6 +38,8 @@ public class Main {
 
     private static boolean forciblyTerminated = false;
     private static ServerSocket serverSocket;
+
+    private static List<BufferedImage> imageIcons;
 
     public synchronized static ServerSocket getServerSocket() {
         return serverSocket;
@@ -170,6 +178,18 @@ public class Main {
         } catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException ignored) {
             //ignore
         }
+
+        imageIcons = new ArrayList<>();
+        try {
+            imageIcons.add(ImageIO.read(Main.class.getResourceAsStream("/com/jpexs/games/rpsls/graphics/icon256.png")));
+            imageIcons.add(ImageIO.read(Main.class.getResourceAsStream("/com/jpexs/games/rpsls/graphics/icon128.png")));
+            imageIcons.add(ImageIO.read(Main.class.getResourceAsStream("/com/jpexs/games/rpsls/graphics/icon32.png")));
+            imageIcons.add(ImageIO.read(Main.class.getResourceAsStream("/com/jpexs/games/rpsls/graphics/icon16.png")));
+        } catch (IOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            System.exit(1);
+        }
+
     }
 
     public static void centerWindow(Window f) {
@@ -204,6 +224,10 @@ public class Main {
         windowPosY = ((screenY - f.getHeight()) / 2) + topLeftY;
 
         f.setLocation(windowPosX, windowPosY);
+    }
+
+    public static void setWindowIcon(Window f) {
+        f.setIconImages(imageIcons);
     }
 
 }
