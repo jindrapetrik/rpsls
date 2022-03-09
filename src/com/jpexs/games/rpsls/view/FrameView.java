@@ -15,6 +15,7 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -80,6 +81,10 @@ public class FrameView extends JFrame implements IRpslView {
     private Point hilightedPoint = null;
 
     private Point selectedPoint = null;
+
+    private boolean hilightedShuffle = false;
+
+    private boolean hilightedStart = false;
 
     private boolean fight = false;
 
@@ -413,6 +418,37 @@ public class FrameView extends JFrame implements IRpslView {
                 if (model.isWeaponSelectionNeeded(myTeam)) {
                     paintWeaponSelection(g);
                 }
+
+                if (model.getTeamPhase(myTeam) == Phase.WEAPONS) {
+                    paintShuffleStartOptions(g);
+                }
+            }
+
+            private void paintShuffleStartOptions(Graphics g) {
+                g.setColor(Color.yellow);
+                int windowHeight = FIELD_SIZE;
+
+                g.fillRect(BOARD_BORDER, BOARD_BORDER + model.getBoardHeight() * FIELD_SIZE / 2 - windowHeight / 2, model.getBoardWidth() * FIELD_SIZE, windowHeight);
+                String textToPaint;
+                int textWidth;
+                Rectangle r;
+
+                g.setColor(Color.black);
+                g.setFont(g.getFont().deriveFont(20f));
+                textToPaint = "SHUFFLE";
+                textWidth = g.getFontMetrics().stringWidth(textToPaint);
+                g.drawString(textToPaint,
+                        BOARD_BORDER + model.getBoardWidth() * FIELD_SIZE / 2 - 10 - textWidth,
+                        BOARD_BORDER + model.getBoardHeight() * FIELD_SIZE / 2 - windowHeight / 2 + 38 + g.getFont().getSize());
+                r = getShuffleButtonRect();
+                g.drawRect(r.x, r.y, r.width, r.height);
+                textToPaint = "START";
+                textWidth = g.getFontMetrics().stringWidth(textToPaint);
+                g.drawString(textToPaint,
+                        BOARD_BORDER + model.getBoardWidth() * FIELD_SIZE / 2 + 10,
+                        BOARD_BORDER + model.getBoardHeight() * FIELD_SIZE / 2 - windowHeight / 2 + 38 + g.getFont().getSize());
+                r = getStartButtonRect();
+                g.drawRect(r.x, r.y, r.width, r.height);
             }
 
             private void paintWeaponSelection(Graphics g) {
@@ -572,6 +608,14 @@ public class FrameView extends JFrame implements IRpslView {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
+                    if (model.getTeamPhase(myTeam) == Phase.WEAPONS) {
+                        if (hilightedShuffle) {
+                            fireShuffle();
+                        }
+                        if (hilightedStart) {
+                            fireStart();
+                        }
+                    }
                     if (model.isWeaponSelectionNeeded(myTeam)) {
                         Weapon weaponToSelect = hilightedWeapon;
                         if (weaponToSelect != null) {
@@ -592,7 +636,6 @@ public class FrameView extends JFrame implements IRpslView {
                             case CHOOSERS:
                                 fireSetChooser(hilightedPoint);
                                 hilightedPoint = null;
-                                shuffleStartPanel.setVisible(true);
                                 pack();
                                 break;
                             case PLAY:
@@ -618,6 +661,28 @@ public class FrameView extends JFrame implements IRpslView {
             @Override
             public void mouseMoved(MouseEvent e) {
 
+                if (model.getTeamPhase(myTeam) == Phase.WEAPONS) {
+                    Rectangle shuffleRect = getShuffleButtonRect();
+
+                    if (shuffleRect.contains(e.getPoint())) {
+                        hilightedShuffle = true;
+                        hilightedStart = false;
+                        contentPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                        return;
+                    }
+                    Rectangle startRect = getStartButtonRect();
+                    if (startRect.contains(e.getPoint())) {
+                        hilightedShuffle = false;
+                        hilightedStart = true;
+                        contentPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                        return;
+                    }
+                    contentPanel.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+                    return;
+                }
+
+                hilightedShuffle = false;
+                hilightedStart = false;
                 if (model.isWeaponSelectionNeeded(myTeam)) {
                     int weaponCount = Weapon.values().length;
                     for (int i = 0; i < weaponCount; i++) {
@@ -704,30 +769,6 @@ public class FrameView extends JFrame implements IRpslView {
 
         contentPanel.setPreferredSize(new Dimension(model.getBoardWidth() * FIELD_SIZE + 2 * BOARD_BORDER, model.getBoardHeight() * FIELD_SIZE + 2 * BOARD_BORDER));
         container.add(contentPanel, BorderLayout.CENTER);
-
-        shuffleStartPanel = new JPanel(new FlowLayout());
-        shuffleButton = new JButton("Shuffle");
-        shuffleButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                fireShuffle();
-            }
-        });
-        shuffleStartPanel.add(shuffleButton);
-        startButton = new JButton("Start");
-        startButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                fireStart();
-                shuffleStartPanel.setVisible(false);
-                pack();
-            }
-        });
-        shuffleStartPanel.add(startButton);
-
-        container.add(shuffleStartPanel, BorderLayout.SOUTH);
-
-        shuffleStartPanel.setVisible(false);
 
         model.addUpdateListener(new ActionListener() {
             @Override
@@ -888,6 +929,29 @@ public class FrameView extends JFrame implements IRpslView {
         int weaponsCount = Weapon.values().length;
         return new Rectangle(BOARD_BORDER + FIELD_SIZE * model.getBoardWidth() / 2 - SPRITE_WIDTH * weaponsCount / 2 + weapon.ordinal() * SPRITE_WIDTH,
                 getWeaponSelectionTop() + WEAPON_SELECTION_TOP_HEIGHT, SPRITE_WIDTH, SPRITE_HEIGHT);
+    }
+
+    private Rectangle getShuffleButtonRect() {
+        Graphics g = contentPanel.getGraphics();
+        g.setFont(g.getFont().deriveFont(20f));
+        String textToPaint = "SHUFFLE";
+        int textWidth = g.getFontMetrics().stringWidth(textToPaint);
+        int windowHeight = FIELD_SIZE;
+        return new Rectangle(BOARD_BORDER + model.getBoardWidth() * FIELD_SIZE / 2 - 10 - textWidth - 5,
+                BOARD_BORDER + model.getBoardHeight() * FIELD_SIZE / 2 - windowHeight / 2 + 38 - 5,
+                textWidth + 2 * 5, 20 + 2 * 5);
+
+    }
+
+    private Rectangle getStartButtonRect() {
+        int windowHeight = FIELD_SIZE;
+        Graphics g = contentPanel.getGraphics();
+        g.setFont(g.getFont().deriveFont(20f));
+        String textToPaint = "START";
+        int textWidth = g.getFontMetrics().stringWidth(textToPaint);
+        return new Rectangle(BOARD_BORDER + model.getBoardWidth() * FIELD_SIZE / 2 + 10 - 5,
+                BOARD_BORDER + model.getBoardHeight() * FIELD_SIZE / 2 - windowHeight / 2 + 38 - 5,
+                textWidth + 2 * 5, 20 + 2 * 5);
     }
 
     @Override
