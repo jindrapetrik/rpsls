@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -97,6 +98,11 @@ public class FrameView extends JFrame implements IRpslView {
     private List<MoveListener> moveListeners = new ArrayList<>();
     private List<SelectWeaponListener> selectWeaponListeners = new ArrayList<>();
     private List<ActionListener> exitListeners = new ArrayList<>();
+
+    private final int ANIMATIION_PHASES_COUNT = 3;
+    private int animationPhases[][];
+
+    private Timer animationTimer;
 
     @Override
     public void addStartListener(ActionListener listener) {
@@ -264,6 +270,25 @@ public class FrameView extends JFrame implements IRpslView {
         this.model = model;
         myTeam = team;
 
+        animationPhases = new int[model.getBoardWidth()][model.getBoardHeight()];
+        animationTimer = new Timer();
+        animationTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Random rnd = new Random();
+                final int DO_MOVE_PERCENT = 30;
+                if (rnd.nextInt(100) > DO_MOVE_PERCENT) {
+                    return;
+                }
+
+                int x = rnd.nextInt(model.getBoardWidth());
+                int y = rnd.nextInt(model.getBoardHeight());
+                int phase = rnd.nextInt(ANIMATIION_PHASES_COUNT);
+                animationPhases[x][y] = phase;
+                contentPanel.repaint();
+            }
+        }, 1000, 1000);
+
         setTitle("RPSLS, team " + (team + 1) + " - " + teamColorNames[team]);
         setSize(800, 800);
 
@@ -363,7 +388,8 @@ public class FrameView extends JFrame implements IRpslView {
                             }
                         }
 
-                        paintPerson(g, deltaX + BOARD_BORDER + x * FIELD_SIZE, deltaY + BOARD_BORDER + SPRITE_Y_OFFSET + y * FIELD_SIZE, team, weapon, weaponVisible, specialItem);
+                        int animationPhase = animationPhases[x][y];
+                        paintPerson(g, deltaX + BOARD_BORDER + x * FIELD_SIZE, deltaY + BOARD_BORDER + SPRITE_Y_OFFSET + y * FIELD_SIZE, team, weapon, weaponVisible, specialItem, animationPhase);
                     }
                 }
 
@@ -486,40 +512,45 @@ public class FrameView extends JFrame implements IRpslView {
                 g.drawString(message, BOARD_BORDER + model.getBoardWidth() * FIELD_SIZE / 2 - width / 2, BOARD_BORDER + FIELD_SIZE * model.getBoardHeight() / 2 + 4);
             }
 
-            private void paintPerson(Graphics g, int x, int y, int team, Weapon weapon, boolean weaponVisible, SpecialItem specialItem) {
+            private void paintPerson(Graphics g, int x, int y, int team, Weapon weapon, boolean weaponVisible, SpecialItem specialItem, int animationPhase) {
                 int spriteX = -1;
                 int spriteY = -1;
                 if (team == RpslsModel.NO_TEAM) {
                     return;
                 }
                 if (specialItem == SpecialItem.OPONENT_FLAG) {
-                    paintSprite(g, x, y, team, 0, 2, false);
-                    paintSprite(g, x, y, team == 0 ? 1 : 0, 0, 1, false);
+                    paintSprite(g, x, y, team, 0, 7, false);
+                    paintSprite(g, x, y, team == 0 ? 1 : 0, 0, 6, false);
                     return;
                 } else if (team != myTeam && !weaponVisible) {
-                    spriteX = 0;
-                    spriteY = 0;
+                    spriteX = 7 + animationPhase;
+                    spriteY = 3;
                 } else if (team == myTeam && specialItem == SpecialItem.CHOOSER) {
-                    spriteX = 1;
+                    spriteX = 7 + animationPhase;
                     spriteY = 0;
                 } else if (team == myTeam && specialItem == SpecialItem.TRAP) {
-                    spriteX = 1;
-                    spriteY = 1;
+                    spriteX = 0;
+                    spriteY = 5;
                 } else if (team == myTeam && specialItem == SpecialItem.FLAG) {
                     spriteX = 1;
-                    spriteY = 2;
+                    spriteY = 7;
                 } else if (team == myTeam && weapon == null) {
-                    spriteX = 1;
+                    spriteX = 7 + animationPhase;
                     spriteY = 0;
                 } else if (team == myTeam && weapon != null && !weaponVisible) {
-                    spriteX = 2 + weapon.ordinal();
-                    spriteY = 0;
+                    paintSprite(g, x, y, team, 7 + animationPhase, 0, false);
+                    paintSprite(g, x, y, team, 2 + weapon.ordinal(), 0, false);
+                    return;
                 } else if (team == myTeam && weapon != null && weaponVisible) {
-                    spriteX = 2 + weapon.ordinal();
-                    spriteY = 1;
+                    paintSprite(g, x, y, team, 7 + animationPhase, 1, false);
+                    paintSprite(g, x, y, team, 2 + weapon.ordinal(), 1, false);
+                    paintSprite(g, x, y, team, 1, 1, false);
+                    return;
                 } else if (team != myTeam && weapon != null && weaponVisible) {
-                    spriteX = 2 + weapon.ordinal();
-                    spriteY = 2;
+                    paintSprite(g, x, y, team, 7 + animationPhase, 2, false);
+                    paintSprite(g, x, y, team, 2 + weapon.ordinal(), 2, false);
+                    paintSprite(g, x, y, team, 1, 2, false);
+                    return;
                 }
                 paintSprite(g, x, y, team, spriteX, spriteY, false);
             }
@@ -871,6 +902,7 @@ public class FrameView extends JFrame implements IRpslView {
 
     @Override
     public void destroyView() {
+        animationTimer.cancel();
         setVisible(false);
     }
 }
