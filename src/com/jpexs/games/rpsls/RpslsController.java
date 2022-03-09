@@ -183,7 +183,7 @@ public class RpslsController {
                 for (int y = model.getBoardHeight() - model.getNumRowsPerTeam(); y < model.getBoardHeight(); y++) {
                     for (int x = 0; x < model.getBoardWidth(); x++) {
                         Weapon w = weapons[i];
-                        model.setWeaponAt(view.getTeam(), new Point(x, y, view.getTeam()), w);
+                        model.setWeaponAt(view.getTeam(), new Point(x, y, view.getTeam(), model.getGameType()), w);
                         i++;
                     }
                 }
@@ -228,7 +228,7 @@ public class RpslsController {
                 outStream.write(NetworkPackets.PACKET_STARTUP_WEAPONS);
                 for (int y = model.getBoardHeight() - model.getNumRowsPerTeam(); y < model.getBoardHeight(); y++) {
                     for (int x = 0; x < model.getBoardWidth(); x++) {
-                        Weapon w = model.getWeaponAt(view.getTeam(), new Point(x, y, view.getTeam()));
+                        Weapon w = model.getWeaponAt(view.getTeam(), new Point(x, y, view.getTeam(), model.getGameType()));
                         if (w == null) {
                             outStream.write(255);
                         } else {

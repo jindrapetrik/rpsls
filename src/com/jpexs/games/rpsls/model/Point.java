@@ -9,11 +9,13 @@ public class Point {
     private int x;
     private int y;
     private int observingTeam;
+    private GameType gameType;
 
-    public Point(int x, int y, int observingTeam) {
+    public Point(int x, int y, int observingTeam, GameType gameType) {
         this.x = x;
         this.y = y;
         this.observingTeam = observingTeam;
+        this.gameType = gameType;
     }
 
     public int getX() {
@@ -28,26 +30,26 @@ public class Point {
         if (team == observingTeam) {
             return x;
         }
-        return RpslsModel.BOARD_WIDTH - x - 1;
+        return gameType.getBoardWidth() - x - 1;
     }
 
     public int getYForTeam(int team) {
         if (team == observingTeam) {
             return y;
         }
-        return RpslsModel.BOARD_HEIGHT - y - 1;
+        return gameType.getBoardHeight() - y - 1;
     }
 
     public int getBaseTeamX() {
         if (observingTeam == 0) {
-            return RpslsModel.BOARD_WIDTH - x - 1;
+            return gameType.getBoardWidth() - x - 1;
         }
         return x;
     }
 
     public int getBaseTeamY() {
         if (observingTeam == 0) {
-            return RpslsModel.BOARD_HEIGHT - y - 1;
+            return gameType.getBoardHeight() - y - 1;
         }
         return y;
     }

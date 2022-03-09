@@ -1,5 +1,6 @@
 package com.jpexs.games.rpsls;
 
+import com.jpexs.games.rpsls.model.GameType;
 import com.jpexs.games.rpsls.model.RpslsModel;
 import com.jpexs.games.rpsls.view.FrameView;
 import com.jpexs.games.rpsls.view.NetworkView;
@@ -23,6 +24,8 @@ import javax.swing.UnsupportedLookAndFeelException;
  * @author JPEXS
  */
 public class Main {
+
+    private static final GameType defaultGameType = GameType.SMALL;
 
     public static final int PROTOCOL_VERSION_MAJOR = 1;
     public static final int PROTOCOL_VERSION_MINOR = 0;
@@ -49,7 +52,7 @@ public class Main {
     }
 
     public static void startLocalGame() {
-        RpslsModel model = new RpslsModel();
+        RpslsModel model = new RpslsModel(defaultGameType);
         RpslsController controller = new RpslsController(model);
         FrameView frame0 = new FrameView(model, 0);
         controller.addView(frame0);
@@ -101,7 +104,7 @@ public class Main {
 
     private static void networkGameConnected(Socket socket, int team) throws IOException {
         int otherTeam = team == 0 ? 1 : 0;
-        RpslsModel model = new RpslsModel();
+        RpslsModel model = new RpslsModel(defaultGameType);
         RpslsController controller = new RpslsController(model);
         FrameView localView = new FrameView(model, team);
         controller.addView(localView);

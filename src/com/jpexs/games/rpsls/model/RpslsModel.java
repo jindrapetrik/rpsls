@@ -13,11 +13,6 @@ import java.util.Random;
  */
 public class RpslsModel {
 
-    public static final int BOARD_WIDTH = 6;
-    public static final int BOARD_HEIGHT = 8;
-
-    public static final int NUM_EACH_WEAPON = 3;
-
     public static final int NUM_TEAMS = 2;
 
     private Person[][] board;
@@ -47,8 +42,15 @@ public class RpslsModel {
 
     private Move lastMove;
 
-    public RpslsModel() {
+    private GameType gameType;
+
+    public RpslsModel(GameType gameType) {
+        this.gameType = gameType;
         newGame();
+    }
+
+    public GameType getGameType() {
+        return gameType;
     }
 
     public boolean isWaitingOnOpponent(int team) {
@@ -163,7 +165,7 @@ public class RpslsModel {
     }
 
     public synchronized void newGame() {
-        board = new Person[BOARD_WIDTH][BOARD_HEIGHT];
+        board = new Person[getBoardWidth()][getBoardHeight()];
         teamPhases[0] = Phase.FLAGS;
         teamPhases[1] = Phase.FLAGS;
 
@@ -172,7 +174,7 @@ public class RpslsModel {
         int startRow0 = getTeamStartRow(0);
 
         for (int y = startRow0; y < startRow0 + numRowsPerTeam; y++) {
-            for (int x = 0; x < BOARD_WIDTH; x++) {
+            for (int x = 0; x < getBoardWidth(); x++) {
                 board[x][y] = new Person(0, null, null);
             }
         }
@@ -180,7 +182,7 @@ public class RpslsModel {
         int startRow1 = getTeamStartRow(1);
 
         for (int y = startRow1; y < startRow1 + numRowsPerTeam; y++) {
-            for (int x = 0; x < BOARD_WIDTH; x++) {
+            for (int x = 0; x < getBoardWidth(); x++) {
                 board[x][y] = new Person(1, null, null);
             }
         }
@@ -229,7 +231,7 @@ public class RpslsModel {
     }
 
     private boolean isPointOutsideBoard(Point p) {
-        if (p.getX() < 0 || p.getX() >= BOARD_WIDTH || p.getY() < 0 || p.getY() >= BOARD_HEIGHT) {
+        if (p.getX() < 0 || p.getX() >= getBoardWidth() || p.getY() < 0 || p.getY() >= getBoardHeight()) {
             return true;
         }
         return false;
@@ -372,22 +374,22 @@ public class RpslsModel {
             return validMoves;
         }
 
-        Point up = new Point(location.getX(), location.getY() - 1, location.getObservingTeam());
+        Point up = new Point(location.getX(), location.getY() - 1, location.getObservingTeam(), gameType);
         if (canMoveTo(team, up)) {
             validMoves.add(up);
         }
 
-        Point down = new Point(location.getX(), location.getY() + 1, location.getObservingTeam());
+        Point down = new Point(location.getX(), location.getY() + 1, location.getObservingTeam(), gameType);
         if (canMoveTo(team, down)) {
             validMoves.add(down);
         }
 
-        Point left = new Point(location.getX() - 1, location.getY(), location.getObservingTeam());
+        Point left = new Point(location.getX() - 1, location.getY(), location.getObservingTeam(), gameType);
         if (canMoveTo(team, left)) {
             validMoves.add(left);
         }
 
-        Point right = new Point(location.getX() + 1, location.getY(), location.getObservingTeam());
+        Point right = new Point(location.getX() + 1, location.getY(), location.getObservingTeam(), gameType);
 
         if (canMoveTo(team, right)) {
             validMoves.add(right);
@@ -571,11 +573,11 @@ public class RpslsModel {
     }
 
     public int getBoardWidth() {
-        return BOARD_WIDTH;
+        return gameType.getBoardWidth();
     }
 
     public int getBoardHeight() {
-        return BOARD_HEIGHT;
+        return gameType.getBoardHeight();
     }
 
     public void shuffleWeapons(int team) {
@@ -587,7 +589,7 @@ public class RpslsModel {
         int weaponCount = Weapon.values().length;
         Random random = new Random();
         for (int w = 0; w < weaponCount; w++) {
-            for (int i = 0; i < NUM_EACH_WEAPON; i++) {
+            for (int i = 0; i < gameType.getNumEachWeapon(); i++) {
                 allWeapons.add(weaponValues[w]);
             }
         }
@@ -599,7 +601,7 @@ public class RpslsModel {
 
         int pos = 0;
         for (int y = startRow; y < startRow + numRowsPerTeam; y++) {
-            for (int x = 0; x < BOARD_WIDTH; x++) {
+            for (int x = 0; x < getBoardWidth(); x++) {
                 if (board[x][y].getSpecialItem() == null) {
                     board[x][y].setWeapon(allWeapons.get(pos));
                     pos++;
@@ -610,11 +612,12 @@ public class RpslsModel {
     }
 
     private int getTeamStartRow(int team) {
-        return team == 0 ? 0 : BOARD_HEIGHT - getNumRowsPerTeam();
+        return team == 0 ? 0 : getBoardHeight() - getNumRowsPerTeam();
     }
 
     public int getNumRowsPerTeam() {
-        return (NUM_EACH_WEAPON * Weapon.values().length + SpecialItem.values().length) / BOARD_WIDTH;
+        return gameType.getNumRows();
+        //return (NUM_EACH_WEAPON * Weapon.values().length + SpecialItem.values().length) / getBoardWidth();
     }
 
     public boolean canShuffleWeapons(int team) {
@@ -667,8 +670,13 @@ public class RpslsModel {
             throw new RuntimeException("Cannot set trap on position " + location);
         }
         getPersonOnLocation(location).setSpecialItem(SpecialItem.TRAP);
-        setTeamPhase(team, Phase.CHOOSERS);
-        fireUpdate();
+        if (gameType.usesChooser()) {
+            setTeamPhase(team, Phase.CHOOSERS);
+            fireUpdate();
+        } else {
+            startWeaponsPhase(team);
+        }
+
     }
 
     public void setChooserPosition(int team, Point location) {
@@ -676,6 +684,10 @@ public class RpslsModel {
             throw new RuntimeException("Cannot set chooser on position " + location);
         }
         getPersonOnLocation(location).setSpecialItem(SpecialItem.CHOOSER);
+        startWeaponsPhase(team);
+    }
+
+    private void startWeaponsPhase(int team) {
         setTeamPhase(team, Phase.WEAPONS);
         shuffleWeapons(team);
         fireUpdate();

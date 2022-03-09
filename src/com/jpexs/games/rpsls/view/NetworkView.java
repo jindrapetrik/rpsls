@@ -62,21 +62,21 @@ public class NetworkView implements IRpslView {
                                 y = is.read();
                                 t = is.read();
 
-                                fireSetFlag(new Point(x, y, t));
+                                fireSetFlag(new Point(x, y, t, model.getGameType()));
                                 break;
                             case NetworkPackets.PACKET_SET_TRAP:
                                 x = is.read();
                                 y = is.read();
                                 t = is.read();
 
-                                fireSetTrap(new Point(x, y, t));
+                                fireSetTrap(new Point(x, y, t, model.getGameType()));
                                 break;
                             case NetworkPackets.PACKET_SET_CHOOSER:
                                 x = is.read();
                                 y = is.read();
                                 t = is.read();
 
-                                fireSetChooser(new Point(x, y, t));
+                                fireSetChooser(new Point(x, y, t, model.getGameType()));
                                 break;
                             case NetworkPackets.PACKET_STARTUP_WEAPONS:
                                 Weapon weapons[] = new Weapon[model.getNumRowsPerTeam() * model.getBoardWidth()];
@@ -100,7 +100,7 @@ public class NetworkView implements IRpslView {
                                 x2 = is.read();
                                 y2 = is.read();
                                 t2 = is.read();
-                                fireMove(new Point(x, y, t), new Point(x2, y2, t2));
+                                fireMove(new Point(x, y, t, model.getGameType()), new Point(x2, y2, t2, model.getGameType()));
                                 break;
                             case NetworkPackets.PACKET_PROCEED:
                                 fireProceed();

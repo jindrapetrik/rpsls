@@ -362,10 +362,10 @@ public class FrameView extends JFrame implements IRpslView {
                 }
                 for (int y = 0; y < model.getBoardHeight(); y++) {
                     for (int x = 0; x < model.getBoardWidth(); x++) {
-                        Point location = new Point(x, y, myTeam);
+                        Point location = new Point(x, y, myTeam, model.getGameType());
                         Move currentTrapMove = trapMove;
                         if (currentTrapMove != null) {
-                            if (currentTrapMove.target.equals(new Point(x, y, myTeam))) {
+                            if (currentTrapMove.target.equals(new Point(x, y, myTeam, model.getGameType()))) {
                                 paintSprite(g, BOARD_BORDER + x * FIELD_SIZE, SPRITE_Y_OFFSET + BOARD_BORDER + y * FIELD_SIZE, currentTrapMove.sourceTeam, 1, 5 + trapPhase, false);
                                 if (currentTrapMove.targetTeam == myTeam) {
                                     paintSprite(g, BOARD_BORDER + x * FIELD_SIZE, SPRITE_Y_OFFSET + BOARD_BORDER + y * FIELD_SIZE, currentTrapMove.targetTeam, 1, 4, false);
@@ -374,7 +374,7 @@ public class FrameView extends JFrame implements IRpslView {
                                 }
                                 continue;
                             }
-                            if (currentTrapMove.source.equals(new Point(x, y, myTeam))) {
+                            if (currentTrapMove.source.equals(new Point(x, y, myTeam, model.getGameType()))) {
                                 continue;
                             }
                         }
@@ -729,7 +729,7 @@ public class FrameView extends JFrame implements IRpslView {
                     return;
                 }
 
-                newHilightedPoint = new Point(x, y, myTeam);
+                newHilightedPoint = new Point(x, y, myTeam, model.getGameType());
 
                 switch (model.getTeamPhase(myTeam)) {
                     case WEAPONS:
