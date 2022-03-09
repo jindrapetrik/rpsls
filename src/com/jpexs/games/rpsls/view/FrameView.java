@@ -86,7 +86,7 @@ public class FrameView extends JFrame implements IRpslView {
 
     private boolean hilightedStart = false;
 
-    private boolean fight = false;
+    private int fightPhase = 0;
 
     private Weapon hilightedWeapon = null;
 
@@ -263,12 +263,12 @@ public class FrameView extends JFrame implements IRpslView {
         }
     }
 
-    private synchronized boolean isFight() {
-        return fight;
+    private synchronized int getFightPhase() {
+        return fightPhase;
     }
 
-    private synchronized void setFight(boolean fight) {
-        this.fight = fight;
+    private synchronized void setFightPhase(int fightPhase) {
+        this.fightPhase = fightPhase;
     }
 
     public FrameView(RpslsModel model, int team) {
@@ -499,7 +499,8 @@ public class FrameView extends JFrame implements IRpslView {
                 g2d.setColor(Color.yellow);
                 g2d.fillOval(posLeftPixels, posTopPixels + FIELD_SIZE - 20, FIELD_SIZE * 2, 40);
 
-                if (isFight() && weaponLeft != weaponRight) {
+                int phase = getFightPhase();
+                if (phase > 0 && weaponLeft != weaponRight) {
                     int spriteX = -1;
                     int spriteY = -1;
                     Weapon[][] weaponCombination = new Weapon[][]{
@@ -514,6 +515,9 @@ public class FrameView extends JFrame implements IRpslView {
                         spriteX = 2;
                         if (i % 2 == 1) {
                             spriteX = 4;
+                        }
+                        if (phase == 2) {
+                            spriteX += 4;
                         }
                         spriteY = 5 + i / 2;
                         if (weaponLeft == weaponCombination[i][0] && weaponRight == weaponCombination[i][1]) {
@@ -800,24 +804,32 @@ public class FrameView extends JFrame implements IRpslView {
             @Override
             public void actionPerformed(ActionEvent e) {
                 selectedPoint = null;
-                setFight(false);
+                setFightPhase(0);
                 contentPanel.repaint();
 
                 final Timer timer = new Timer();
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        setFight(true);
+                        setFightPhase(1);
                         contentPanel.repaint();
 
                         timer.schedule(new TimerTask() {
                             @Override
                             public void run() {
-                                setFight(false);
-                                fireProceed();
+                                setFightPhase(2);
+                                contentPanel.repaint();
+
+                                timer.schedule(new TimerTask() {
+                                    @Override
+                                    public void run() {
+                                        fireProceed();
+                                    }
+
+                                }, 2000);
                             }
 
-                        }, 3000);
+                        }, 1500);
                     }
                 }, 2000);
             }
