@@ -93,6 +93,7 @@ public class FrameView extends JFrame implements IRpslView {
     private JPanel rightPanel;
 
     private Move trapMove = null;
+    private int trapPhase = 0;
 
     private List<SetPointListener> setFlagListeners = new ArrayList<>();
     private List<SetPointListener> setTrapListeners = new ArrayList<>();
@@ -108,6 +109,14 @@ public class FrameView extends JFrame implements IRpslView {
     private int animationPhases[][];
 
     private Timer animationTimer;
+
+    private void setTrapPhase(int trapPhase) {
+        this.trapPhase = trapPhase;
+    }
+
+    private synchronized int getTrapPhase() {
+        return trapPhase;
+    }
 
     @Override
     public void addStartListener(ActionListener listener) {
@@ -357,7 +366,7 @@ public class FrameView extends JFrame implements IRpslView {
                         Move currentTrapMove = trapMove;
                         if (currentTrapMove != null) {
                             if (currentTrapMove.target.equals(new Point(x, y, myTeam))) {
-                                paintSprite(g, BOARD_BORDER + x * FIELD_SIZE, SPRITE_Y_OFFSET + BOARD_BORDER + y * FIELD_SIZE, currentTrapMove.sourceTeam, 1, 5, false);
+                                paintSprite(g, BOARD_BORDER + x * FIELD_SIZE, SPRITE_Y_OFFSET + BOARD_BORDER + y * FIELD_SIZE, currentTrapMove.sourceTeam, 1, 5 + trapPhase, false);
                                 if (currentTrapMove.targetTeam == myTeam) {
                                     paintSprite(g, BOARD_BORDER + x * FIELD_SIZE, SPRITE_Y_OFFSET + BOARD_BORDER + y * FIELD_SIZE, currentTrapMove.targetTeam, 1, 4, false);
                                 } else {
@@ -839,16 +848,25 @@ public class FrameView extends JFrame implements IRpslView {
             @Override
             public void actionPerformed(ActionEvent e) {
                 trapMove = model.getLastMove();
+                setTrapPhase(0);
                 contentPanel.repaint();
                 final Timer timer = new Timer();
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        trapMove = null;
+                        setTrapPhase(1);
                         contentPanel.repaint();
-                        fireProceed();
+
+                        timer.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                trapMove = null;
+                                contentPanel.repaint();
+                                fireProceed();
+                            }
+                        }, 1500);
                     }
-                }, 3000);
+                }, 1500);
             }
         });
 
