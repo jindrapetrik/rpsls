@@ -101,6 +101,7 @@ public class Main {
                     if (!forciblyTerminated) {
                         waitFrame.setVisible(false);
                         showError(ex);
+                        mainMenu();
                     }
                 }
                 return null;
@@ -149,6 +150,7 @@ public class Main {
                 } catch (IOException ex) {
                     waitFrame.setVisible(false);
                     showError(ex);
+                    mainMenu();
                 }
                 return null;
             }
