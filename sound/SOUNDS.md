@@ -1,15 +1,15 @@
 # RPSLS sound effects
 
-- `ROCK` crushes `SCISSORS` - [Scissor] [Rock on Sign.wav] [Metal Object Dropping 01.wav]
-- `ROCK` crushes `LIZARD` - [Slime Squish] [Crumpling to floor.mp3]
+- `ROCK` crushes `SCISSORS` - [Scissor], [Rock on Sign.wav], [Metal Object Dropping 01.wav]
+- `ROCK` crushes `LIZARD` - [Slime Squish], [Crumpling to floor.mp3]
 - `PAPER` covers `ROCK` - [Paper Crumpled 001]
-- `PAPER` disproves `SPOCK` - [creasing paper.WAV] [Crying Man]
+- `PAPER` disproves `SPOCK` - [creasing paper.WAV], [Crying Man]
 - `SCISSORS` cuts `PAPER` - [Scissor cutting paper]
-- `SCISSORS` decapitates `LIZARD` - [Scissor] [Zombie Hit 1.wav]
+- `SCISSORS` decapitates `LIZARD` - [Scissor], [Zombie Hit 1.wav]
 - `LIZARD` eats `PAPER` - [Lizard Eating.m4a]
-- `LIZARD` poisons `SPOCK` - [lizard1.wav] [Poison effect.wav] [20 Throwing Up.flac]
+- `LIZARD` poisons `SPOCK` - [lizard1.wav], [Poison effect.wav], [20 Throwing Up.flac]
 - `SPOCK` vaporizes `ROCK` - [fire2.wav]
-- `SPOCK` smashes `SCISSORS` - [Scissor][st Hit 3.wav][Metal Object Dropping 01.wav]
+- `SPOCK` smashes `SCISSORS` - [Scissor], [st Hit 3.wav], [Metal Object Dropping 01.wav]
 - TRAP - [Man falling.]
 - WIN - [Success Fanfare Trumpets.mp3]
 
