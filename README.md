@@ -45,7 +45,7 @@ Game uses sound effects from freesound.org library,
 for complete list, see [sound/SOUNDS.md](sound/SOUNDS.md).
 
 ## License
-Game is licensed under GNU/GPL version 3.
+Game is licensed under GNU/GPL version 3, see [LICENSE](LICENSE) for details.
 
 ## Changelog
 All changes between version are documented in the file [CHANGELOG.md](CHANGELOG.md)
