@@ -34,7 +34,7 @@ public class MainMenuFrame extends JFrame {
             System.exit(1);
         }
 
-        setTitle("RPSLS " + Main.VERSION_STRING);
+        setTitle("RPSLS " + Main.VERSION_STRING + " by " + Main.VENDOR_NAME);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         Container container = getContentPane();
 

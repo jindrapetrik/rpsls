@@ -33,6 +33,8 @@ public class Main {
 
     public static final String VERSION_STRING = "v1.0";
 
+    public static final String VENDOR_NAME = "JPEXS";
+
     private static final GameType DEFAULT_GAME_TYPE = GameType.SMALL;
 
     public static final int PROTOCOL_VERSION_MAJOR = 1;
