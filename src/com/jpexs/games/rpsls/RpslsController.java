@@ -106,6 +106,9 @@ public class RpslsController {
                         destroyViews();
                     }
                 }
+                if (!model.getGameType().usesChooser()) {
+                    sendWeapons(view);
+                }
             }
         }
         );
