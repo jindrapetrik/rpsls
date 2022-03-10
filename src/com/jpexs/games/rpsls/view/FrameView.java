@@ -43,6 +43,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
+import javazoom.jl.player.Player;
 
 /**
  *
@@ -97,6 +98,8 @@ public class FrameView extends JFrame implements IRpslView {
 
     private Move trapMove = null;
     private int trapPhase = 0;
+
+    private boolean playSounds;
 
     private List<SetPointListener> setFlagListeners = new ArrayList<>();
     private List<SetPointListener> setTrapListeners = new ArrayList<>();
@@ -283,9 +286,10 @@ public class FrameView extends JFrame implements IRpslView {
         this.fightPhase = fightPhase;
     }
 
-    public FrameView(RpslsModel model, int team) {
+    public FrameView(RpslsModel model, int team, boolean playSounds) {
         this.model = model;
         myTeam = team;
+        this.playSounds = playSounds;
 
         animationPhases = new int[model.getBoardWidth()][model.getBoardHeight()];
         animationTimer = new Timer();
@@ -517,11 +521,11 @@ public class FrameView extends JFrame implements IRpslView {
                     int spriteX = -1;
                     int spriteY = -1;
                     Weapon[][] weaponCombination = new Weapon[][]{
-                        {Weapon.ROCK, Weapon.SCIZZORS}, {Weapon.ROCK, Weapon.LIZARD},
+                        {Weapon.ROCK, Weapon.SCISSORS}, {Weapon.ROCK, Weapon.LIZARD},
                         {Weapon.PAPER, Weapon.ROCK}, {Weapon.PAPER, Weapon.SPOCK},
-                        {Weapon.SCIZZORS, Weapon.PAPER}, {Weapon.SCIZZORS, Weapon.LIZARD},
+                        {Weapon.SCISSORS, Weapon.PAPER}, {Weapon.SCISSORS, Weapon.LIZARD},
                         {Weapon.LIZARD, Weapon.PAPER}, {Weapon.LIZARD, Weapon.SPOCK},
-                        {Weapon.SPOCK, Weapon.ROCK}, {Weapon.SPOCK, Weapon.SCIZZORS}
+                        {Weapon.SPOCK, Weapon.ROCK}, {Weapon.SPOCK, Weapon.SCISSORS}
                     };
                     boolean flipped = false;
                     for (int i = 0; i < weaponCombination.length; i++) {
@@ -803,8 +807,10 @@ public class FrameView extends JFrame implements IRpslView {
                     @Override
                     public void run() {
                         if (model.getWinner() == myTeam) {
+                            playSound("WIN.mp3");
                             JOptionPane.showMessageDialog(contentPanel, "You won!");
                         } else {
+                            //playSound("");
                             JOptionPane.showMessageDialog(contentPanel, "You lost!");
                         }
                     }
@@ -824,6 +830,19 @@ public class FrameView extends JFrame implements IRpslView {
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
+
+                        Attack attack = model.getAttack();
+                        if (attack == null) {
+                            return;
+                        }
+                        String soundFile;
+                        if (attack.sourceWeapon.fight(attack.targetWeapon) == 1) {
+                            soundFile = attack.sourceWeapon.toString() + "_" + attack.targetWeapon.toString() + ".mp3";
+                        } else {
+                            soundFile = attack.targetWeapon.toString() + "_" + attack.sourceWeapon.toString() + ".mp3";
+                        }
+                        playSound(soundFile);
+
                         setFightPhase(1);
                         contentPanel.repaint();
 
@@ -854,6 +873,7 @@ public class FrameView extends JFrame implements IRpslView {
                 trapMove = model.getLastMove();
                 setTrapPhase(0);
                 contentPanel.repaint();
+                playSound("TRAP.mp3");
                 final Timer timer = new Timer();
                 timer.schedule(new TimerTask() {
                     @Override
@@ -1024,5 +1044,22 @@ public class FrameView extends JFrame implements IRpslView {
     public void destroyView() {
         animationTimer.cancel();
         setVisible(false);
+    }
+
+    private void playSound(String soundFile) {
+        if (!playSounds) {
+            return;
+        }
+        new Thread() {
+            public void run() {
+
+                try {
+                    Player playMP3 = new Player(FrameView.class.getResourceAsStream("/com/jpexs/games/rpsls/sound/" + soundFile));
+                    playMP3.play();
+                } catch (Exception exc) {
+                    //ignore
+                }
+            }
+        }.start();
     }
 }

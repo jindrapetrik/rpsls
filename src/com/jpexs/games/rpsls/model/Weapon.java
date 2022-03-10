@@ -5,7 +5,7 @@ package com.jpexs.games.rpsls.model;
  * @author JPEXS
  */
 public enum Weapon {
-    ROCK, PAPER, SCIZZORS, LIZARD, SPOCK;
+    ROCK, PAPER, SCISSORS, LIZARD, SPOCK;
 
     public int fight(Weapon otherWeapon) {
         if (otherWeapon == this) {
@@ -14,7 +14,7 @@ public enum Weapon {
         switch (this) {
             case ROCK:
                 //rock crushes scizzors
-                if (otherWeapon == SCIZZORS) {
+                if (otherWeapon == SCISSORS) {
                     return 1;
                 }
                 //rock crushes lizard
@@ -32,9 +32,9 @@ public enum Weapon {
                     return 1;
                 }
                 break;
-            case SCIZZORS:
+            case SCISSORS:
                 //scizzors cuts paper
-                if (otherWeapon == SCIZZORS) {
+                if (otherWeapon == SCISSORS) {
                     return 1;
                 }
                 //scizzors decapitates lizard
@@ -58,7 +58,7 @@ public enum Weapon {
                     return 1;
                 }
                 //spock smashes scizzors
-                if (otherWeapon == SCIZZORS) {
+                if (otherWeapon == SCISSORS) {
                     return 1;
                 }
                 break;

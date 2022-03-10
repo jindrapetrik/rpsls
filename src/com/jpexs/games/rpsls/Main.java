@@ -41,6 +41,10 @@ public class Main {
     private static boolean forciblyTerminated = false;
     private static ServerSocket serverSocket;
 
+    public static final int SOUND_MODE_OTHER_PLAYS = 0;
+    public static final int SOUND_MODE_CURRENT_PLAYS = 1;
+    public static final int SOUND_MODE_BOTH_PLAYS = 2;
+
     private static List<BufferedImage> imageIcons;
 
     public synchronized static ServerSocket getServerSocket() {
@@ -64,9 +68,9 @@ public class Main {
     public static void startLocalGame() {
         RpslsModel model = new RpslsModel(DEFAULT_GAME_TYPE);
         RpslsController controller = new RpslsController(model);
-        FrameView frame0 = new FrameView(model, 0);
+        FrameView frame0 = new FrameView(model, 0, true);
         controller.addView(frame0);
-        FrameView frame1 = new FrameView(model, 1);
+        FrameView frame1 = new FrameView(model, 1, false);
         controller.addView(frame1);
 
         frame0.setLocation(50, 20);
@@ -98,7 +102,7 @@ public class Main {
                     Socket socket = null;
                     socket = serverSocket.accept();
                     waitFrame.setVisible(false);
-                    networkGameConnected(socket, 0);
+                    networkGameConnected(socket, 0, true);
                 } catch (IOException ex) {
                     if (!forciblyTerminated) {
                         waitFrame.setVisible(false);
@@ -113,11 +117,11 @@ public class Main {
 
     }
 
-    private static void networkGameConnected(Socket socket, int team) throws IOException {
+    private static void networkGameConnected(Socket socket, int team, boolean playSounds) throws IOException {
         int otherTeam = team == 0 ? 1 : 0;
         RpslsModel model = new RpslsModel(DEFAULT_GAME_TYPE);
         RpslsController controller = new RpslsController(model);
-        FrameView localView = new FrameView(model, team);
+        FrameView localView = new FrameView(model, team, playSounds);
         controller.addView(localView);
         NetworkView remoteView = new NetworkView(model, otherTeam, socket);
         controller.addView(remoteView);
@@ -148,7 +152,7 @@ public class Main {
                 try {
                     Socket socket = new Socket(address, port);
                     waitFrame.setVisible(false);
-                    networkGameConnected(socket, 1);
+                    networkGameConnected(socket, 1, !"localhost".equals(address)); //Do not play sounds twice when on localhost
                 } catch (IOException ex) {
                     waitFrame.setVisible(false);
                     showError(ex);
