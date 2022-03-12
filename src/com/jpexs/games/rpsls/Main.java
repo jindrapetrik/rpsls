@@ -37,9 +37,13 @@ public class Main {
 
     private static final GameType DEFAULT_GAME_TYPE = GameType.SMALL;
 
-    public static final int PROTOCOL_VERSION_MAJOR = 1;
+    public static final int PROTOCOL_VERSION_MAJOR = 2;
     public static final int PROTOCOL_VERSION_MINOR = 0;
 
+    /*
+      Protocol changes:
+        2.0 - scissors cuts paper fix
+     */
     private static boolean forciblyTerminated = false;
     private static ServerSocket serverSocket;
 
