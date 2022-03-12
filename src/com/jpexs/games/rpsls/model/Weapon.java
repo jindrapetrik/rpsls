@@ -34,7 +34,7 @@ public enum Weapon {
                 break;
             case SCISSORS:
                 //scizzors cuts paper
-                if (otherWeapon == SCISSORS) {
+                if (otherWeapon == PAPER) {
                     return 1;
                 }
                 //scizzors decapitates lizard

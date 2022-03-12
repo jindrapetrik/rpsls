@@ -31,7 +31,7 @@ import javax.swing.UnsupportedLookAndFeelException;
  */
 public class Main {
 
-    public static final String VERSION_STRING = "v1.0";
+    public static final String VERSION_STRING = "v1.1";
 
     public static final String VENDOR_NAME = "JPEXS";
 
