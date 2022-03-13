@@ -935,6 +935,14 @@ public class FrameView extends JFrame implements IRpslView {
             public void move(Point source, Point destination) {
                 moveFrom = source.toTeamPoint(myTeam);
                 moveTo = destination.toTeamPoint(myTeam);
+                if (model.getTeamAt(myTeam, moveTo) != RpslsModel.NO_TEAM) { //it's the attack
+                    if (moveFrom.getX() != moveTo.getX()) { //horizontal
+                        moveFrom = null;
+                        moveTo = null;
+                        fireProceed(); //no walking, just start the fight
+                        return;
+                    }
+                }
                 movePhase = 1;
                 contentPanel.repaint();
                 playSound("WALK.mp3");
