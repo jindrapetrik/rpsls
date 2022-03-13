@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [v2.0] - 2022-03-13
 - Animations of walking from one field to another
 - Sound effect of walking
 - Persons with same weapons rendered on stage when attack

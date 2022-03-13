@@ -50,7 +50,7 @@ public class Main {
 
     public static final String CONFIG_NAME = "config.bin";
 
-    public static final String VERSION_STRING = "v1.1";
+    public static final String VERSION_STRING = "v2.0";
 
     public static final String VENDOR_NAME = "JPEXS";
 
