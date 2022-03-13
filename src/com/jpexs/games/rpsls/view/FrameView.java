@@ -15,8 +15,6 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -44,7 +42,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
-import javazoom.jl.player.Player;
 
 /**
  *
@@ -580,7 +577,8 @@ public class FrameView extends JFrame implements IRpslView {
 
             private void paintWeaponSelection(Graphics g) {
                 g.setColor(Color.yellow);
-                int weaponsCount = Weapon.values().length;
+                Weapon[] allWeapons = model.getGameType().getWeapons();
+                int weaponsCount = allWeapons.length;
                 int selectionTop = getWeaponSelectionTop();
                 g.fillRect(BOARD_BORDER, selectionTop, model.getBoardWidth() * FIELD_SIZE, WEAPON_SELECTION_TOP_HEIGHT + FIELD_SIZE);
                 g.setColor(Color.black);
@@ -589,7 +587,7 @@ public class FrameView extends JFrame implements IRpslView {
                 int textWidth = g.getFontMetrics().stringWidth(textToPrint);
                 g.drawString(textToPrint, BOARD_BORDER + FIELD_SIZE * model.getBoardWidth() / 2 - textWidth / 2, selectionTop + 5 + g.getFont().getSize());
                 for (int i = 0; i < weaponsCount; i++) {
-                    Rectangle drawRect = getWeaponSelectionRect(Weapon.values()[i]);
+                    Rectangle drawRect = getWeaponSelectionRect(allWeapons[i]);
                     paintSprite(g, drawRect.x, drawRect.y, myTeam, 2 + i, 10, false);
                 }
             }
@@ -663,8 +661,16 @@ public class FrameView extends JFrame implements IRpslView {
                         paintSprite(g, posLeftPixels + FIELD_SIZE, posTopPixels, teamRight, spriteX + 1, spriteY, false);
                     }
                 } else {
-                    paintSprite(g, posLeftPixels, posTopPixels, teamLeft, 2 + weaponLeft.ordinal(), 3, false);
-                    paintSprite(g, posLeftPixels + FIELD_SIZE, posTopPixels, teamRight, 2 + weaponRight.ordinal(), 4, false);
+                    if (weaponLeft != null) {
+                        paintSprite(g, posLeftPixels, posTopPixels, teamLeft, 2 + weaponLeft.ordinal(), 3, false);
+                    } else {
+                        paintSprite(g, posLeftPixels, posTopPixels, teamLeft, 0, 3, false);
+                    }
+                    if (weaponRight != null) {
+                        paintSprite(g, posLeftPixels + FIELD_SIZE, posTopPixels, teamRight, 2 + weaponRight.ordinal(), 4, false);
+                    } else {
+                        paintSprite(g, posLeftPixels + FIELD_SIZE, posTopPixels, teamRight, 1, 3, false);
+                    }
                 }
 
             }
@@ -816,11 +822,12 @@ public class FrameView extends JFrame implements IRpslView {
                 hilightedShuffle = false;
                 hilightedStart = false;
                 if (model.isWeaponSelectionNeeded(myTeam)) {
-                    int weaponCount = Weapon.values().length;
+                    Weapon[] allWeapons = model.getGameType().getWeapons();
+                    int weaponCount = allWeapons.length;
                     for (int i = 0; i < weaponCount; i++) {
-                        Rectangle weaponRect = getWeaponSelectionRect(Weapon.values()[i]);
+                        Rectangle weaponRect = getWeaponSelectionRect(allWeapons[i]);
                         if (weaponRect.contains(e.getPoint())) {
-                            hilightedWeapon = Weapon.values()[i];
+                            hilightedWeapon = allWeapons[i];
                             contentPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
                             contentPanel.repaint();
                             return;
@@ -1155,7 +1162,7 @@ public class FrameView extends JFrame implements IRpslView {
     }
 
     private Rectangle getWeaponSelectionRect(Weapon weapon) {
-        int weaponsCount = Weapon.values().length;
+        int weaponsCount = model.getGameType().getWeapons().length;
         return new Rectangle(BOARD_BORDER + FIELD_SIZE * model.getBoardWidth() / 2 - SPRITE_WIDTH * weaponsCount / 2 + weapon.ordinal() * SPRITE_WIDTH,
                 getWeaponSelectionTop() + WEAPON_SELECTION_TOP_HEIGHT, SPRITE_WIDTH, SPRITE_HEIGHT);
     }

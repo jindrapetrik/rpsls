@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 - Persons with same weapons rendered on stage when attack
 - Better sound effects sync
 - Entering attack sound (bell)
+- Game type selection - RPSLS/RPS/RPSLS_LARGE
+- New person type - chooser - in RPSLS_LARGE game type
 
 ## [1.1] - 2022-03-12
 - Fixed scissors not cutting paper -> paper won in that case

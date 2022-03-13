@@ -1,6 +1,7 @@
 package com.jpexs.games.rpsls;
 
 import com.jpexs.games.rpsls.model.GameType;
+import com.jpexs.games.rpsls.model.NetworkPackets;
 import com.jpexs.games.rpsls.model.RpslsModel;
 import com.jpexs.games.rpsls.view.FrameView;
 import com.jpexs.games.rpsls.view.NetworkView;
@@ -12,7 +13,10 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -35,15 +39,16 @@ public class Main {
 
     public static final String VENDOR_NAME = "JPEXS";
 
-    private static final GameType DEFAULT_GAME_TYPE = GameType.SMALL;
+    private static final GameType DEFAULT_GAME_TYPE = GameType.RPS;
 
-    public static final int PROTOCOL_VERSION_MAJOR = 3;
+    public static final int PROTOCOL_VERSION_MAJOR = 4;
     public static final int PROTOCOL_VERSION_MINOR = 0;
 
     /*
       Protocol changes:
         2.0 - scissors cuts paper fix
         3.0 - requested proceed after move and after same weapons attack
+        4.0 - set game type
      */
     private static boolean forciblyTerminated = false;
     private static ServerSocket serverSocket;
@@ -72,8 +77,13 @@ public class Main {
         joinNetworkGameFrame.setVisible(true);
     }
 
-    public static void startLocalGame() {
-        RpslsModel model = new RpslsModel(DEFAULT_GAME_TYPE);
+    public static void startLocalGameDialog() {
+        StartLocalGameFrame startLocalGameFrame = new StartLocalGameFrame();
+        startLocalGameFrame.setVisible(true);
+    }
+
+    public static void startLocalGame(GameType gameType) {
+        RpslsModel model = new RpslsModel(gameType);
         RpslsController controller = new RpslsController(model);
         FrameView frame0 = new FrameView(model, 0, true);
         controller.addView(frame0);
@@ -85,7 +95,7 @@ public class Main {
         controller.start();
     }
 
-    public static void startNetworkGame(int port) {
+    public static void startNetworkGame(int port, GameType gameType) {
         WaitFrame waitFrame = new WaitFrame("Waiting for connection...", new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -109,7 +119,28 @@ public class Main {
                     Socket socket = null;
                     socket = serverSocket.accept();
                     waitFrame.setVisible(false);
-                    networkGameConnected(socket, 0, true);
+
+                    OutputStream outStream = socket.getOutputStream();
+                    outStream.write("RPSLS".getBytes());
+                    outStream.write(Main.PROTOCOL_VERSION_MAJOR);
+                    outStream.write(Main.PROTOCOL_VERSION_MINOR);
+                    outStream.write(NetworkPackets.PACKET_SET_GAMETYPE);
+                    outStream.write(gameType.ordinal());
+
+                    InputStream is = socket.getInputStream();
+                    DataInputStream dais = new DataInputStream(is);
+                    byte[] signature = new byte[5];
+                    dais.readFully(signature);
+                    if (!new String(signature).equals("RPSLS")) {
+                        throw new IOException("Invalid signature");
+                    }
+                    int versionMajor = is.read();
+                    int versionMinor = is.read();
+                    if (versionMajor != Main.PROTOCOL_VERSION_MAJOR) {
+                        throw new IOException("Major version does not match");
+                    }
+
+                    networkGameConnected(socket, 0, true, gameType);
                 } catch (IOException ex) {
                     if (!forciblyTerminated) {
                         waitFrame.setVisible(false);
@@ -124,9 +155,9 @@ public class Main {
 
     }
 
-    private static void networkGameConnected(Socket socket, int team, boolean playSounds) throws IOException {
+    private static void networkGameConnected(Socket socket, int team, boolean playSounds, GameType gameType) throws IOException {
         int otherTeam = team == 0 ? 1 : 0;
-        RpslsModel model = new RpslsModel(DEFAULT_GAME_TYPE);
+        RpslsModel model = new RpslsModel(gameType);
         RpslsController controller = new RpslsController(model);
         FrameView localView = new FrameView(model, team, playSounds);
         controller.addView(localView);
@@ -159,7 +190,31 @@ public class Main {
                 try {
                     Socket socket = new Socket(address, port);
                     waitFrame.setVisible(false);
-                    networkGameConnected(socket, 1, !"localhost".equals(address)); //Do not play sounds twice when on localhost
+
+                    InputStream is = socket.getInputStream();
+                    DataInputStream dais = new DataInputStream(is);
+                    byte[] signature = new byte[5];
+                    dais.readFully(signature);
+                    if (!new String(signature).equals("RPSLS")) {
+                        throw new IOException("Invalid signature");
+                    }
+                    int versionMajor = is.read();
+                    int versionMinor = is.read();
+                    if (versionMajor != Main.PROTOCOL_VERSION_MAJOR) {
+                        throw new IOException("Major version does not match");
+                    }
+                    int packet = is.read();
+                    if (packet != NetworkPackets.PACKET_SET_GAMETYPE) {
+                        throw new IOException("Set gametype packet expected");
+                    }
+                    int gameTypeInt = is.read();
+                    GameType gameType = GameType.values()[gameTypeInt];
+                    OutputStream outStream = socket.getOutputStream();
+                    outStream.write("RPSLS".getBytes());
+                    outStream.write(Main.PROTOCOL_VERSION_MAJOR);
+                    outStream.write(Main.PROTOCOL_VERSION_MINOR);
+
+                    networkGameConnected(socket, 1, !"localhost".equals(address), gameType); //Do not play sounds twice when on localhost
                 } catch (IOException ex) {
                     waitFrame.setVisible(false);
                     showError(ex);

@@ -37,17 +37,6 @@ public class NetworkView implements IRpslView {
             public void run() {
                 try {
                     InputStream is = socket.getInputStream();
-                    DataInputStream dais = new DataInputStream(is);
-                    byte[] signature = new byte[5];
-                    dais.readFully(signature);
-                    if (!new String(signature).equals("RPSLS")) {
-                        throw new IOException("Invalid signature");
-                    }
-                    int versionMajor = is.read();
-                    int versionMinor = is.read();
-                    if (versionMajor != Main.PROTOCOL_VERSION_MAJOR) {
-                        throw new IOException("Major version does not match");
-                    }
 
                     while (true) {
                         int packetType = is.read();

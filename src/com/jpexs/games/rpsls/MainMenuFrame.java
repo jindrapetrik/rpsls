@@ -62,7 +62,7 @@ public class MainMenuFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 setVisible(false);
-                Main.startLocalGame();
+                Main.startLocalGameDialog();
             }
         });
 

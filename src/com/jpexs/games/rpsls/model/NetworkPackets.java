@@ -15,4 +15,5 @@ public class NetworkPackets {
     public static final int PACKET_PROCEED = 6;
     public static final int PACKET_SELECT_WEAPON = 7;
     public static final int PACKET_EXIT = 8;
+    public static final int PACKET_SET_GAMETYPE = 9;
 }

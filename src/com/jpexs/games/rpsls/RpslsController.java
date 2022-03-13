@@ -41,9 +41,6 @@ public class RpslsController {
     public void initNetworkGame(Socket socket) throws IOException {
         this.socket = socket;
         outStream = socket.getOutputStream();
-        outStream.write("RPSLS".getBytes());
-        outStream.write(Main.PROTOCOL_VERSION_MAJOR);
-        outStream.write(Main.PROTOCOL_VERSION_MINOR);
     }
 
     public void addView(IRpslView view) {

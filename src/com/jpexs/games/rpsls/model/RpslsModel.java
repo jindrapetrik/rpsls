@@ -538,7 +538,8 @@ public class RpslsModel {
                     attackingPerson.setWeaponVisible(true);
                     defendingPerson.setWeaponVisible(true);
                 }
-                setAttack(new Attack(source, destination, attackingPerson.getWeapon(), defendingPerson.getWeapon(), attackingPerson.getTeam(), defendingPerson.getTeam()));
+                setAttack(new Attack(source, destination, attackingPerson.isWeaponVisible() ? attackingPerson.getWeapon() : null,
+                        defendingPerson.isWeaponVisible() ? defendingPerson.getWeapon() : null, attackingPerson.getTeam(), defendingPerson.getTeam()));
                 requestProceed(null);
                 fireAttack();
             } else {
@@ -614,8 +615,8 @@ public class RpslsModel {
             throw new RuntimeException("Cannot shuffle weapons now");
         }
         List<Weapon> allWeapons = new ArrayList<>();
-        Weapon[] weaponValues = Weapon.values();
-        int weaponCount = Weapon.values().length;
+        Weapon[] weaponValues = gameType.getWeapons();
+        int weaponCount = gameType.getWeapons().length;
         Random random = new Random();
         for (int w = 0; w < weaponCount; w++) {
             for (int i = 0; i < gameType.getNumEachWeapon(); i++) {
@@ -646,7 +647,6 @@ public class RpslsModel {
 
     public int getNumRowsPerTeam() {
         return gameType.getNumRows();
-        //return (NUM_EACH_WEAPON * Weapon.values().length + SpecialItem.values().length) / getBoardWidth();
     }
 
     public boolean canShuffleWeapons(int team) {
