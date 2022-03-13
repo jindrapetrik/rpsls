@@ -974,7 +974,7 @@ public class FrameView extends JFrame implements IRpslView {
                 selectedPoint = null;
                 setFightPhase(0);
                 contentPanel.repaint();
-
+                playSound("FIGHT.mp3");
                 if (model.isDuelActive()) {
                     return;
                 }

@@ -13,6 +13,7 @@
 - TRAP - [Man falling.]
 - WIN - [Success Fanfare Trumpets.mp3]
 - WALK - [walk.wav]
+- FIGHT - [Boxing Bell Signals]
 
 [Rock on Sign.wav]: https://freesound.org/people/shutup_outcast/sounds/367835/
 [Scissor]: https://freesound.org/people/avreference/sounds/608078/
@@ -34,3 +35,4 @@
 [Man falling.]: https://freesound.org/people/mikimo/sounds/249841/
 [Success Fanfare Trumpets.mp3]: https://freesound.org/people/FunWithSound/sounds/456966/
 [walk.wav]: https://freesound.org/people/hitmount/sounds/321583/
+[Boxing Bell Signals]: https://freesound.org/people/Saviraz/sounds/520998/
