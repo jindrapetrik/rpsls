@@ -12,6 +12,7 @@
 - `SPOCK` smashes `SCISSORS` - [Scissor], [st Hit 3.wav], [Metal Object Dropping 01.wav]
 - TRAP - [Man falling.]
 - WIN - [Success Fanfare Trumpets.mp3]
+- WALK - [walk.wav]
 
 [Rock on Sign.wav]: https://freesound.org/people/shutup_outcast/sounds/367835/
 [Scissor]: https://freesound.org/people/avreference/sounds/608078/
@@ -32,3 +33,4 @@
 [Door Creak]: https://freesound.org/people/stib/sounds/346267/
 [Man falling.]: https://freesound.org/people/mikimo/sounds/249841/
 [Success Fanfare Trumpets.mp3]: https://freesound.org/people/FunWithSound/sounds/456966/
+[walk.wav]: https://freesound.org/people/hitmount/sounds/321583/

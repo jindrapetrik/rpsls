@@ -120,6 +120,7 @@ public class FrameView extends JFrame implements IRpslView {
     private Point moveFrom;
     private Point moveTo;
     private int movePhase = 0;
+    private SoundPlayer soundPlayer;
 
     private void setTrapPhase(int trapPhase) {
         this.trapPhase = trapPhase;
@@ -295,6 +296,9 @@ public class FrameView extends JFrame implements IRpslView {
         this.model = model;
         myTeam = team;
         this.playSounds = playSounds;
+        if (playSounds) {
+            soundPlayer = new SoundPlayer();
+        }
 
         animationPhases = new int[model.getBoardWidth()][model.getBoardHeight()];
         animationTimer = new Timer();
@@ -933,6 +937,7 @@ public class FrameView extends JFrame implements IRpslView {
                 moveTo = destination.toTeamPoint(myTeam);
                 movePhase = 1;
                 contentPanel.repaint();
+                playSound("WALK.mp3");
 
                 final Timer timer = new Timer();
                 timer.schedule(new TimerTask() {
@@ -1182,6 +1187,9 @@ public class FrameView extends JFrame implements IRpslView {
 
     @Override
     public void destroyView() {
+        if (soundPlayer != null) {
+            soundPlayer.terminate();
+        }
         animationTimer.cancel();
         setVisible(false);
     }
@@ -1190,16 +1198,6 @@ public class FrameView extends JFrame implements IRpslView {
         if (!playSounds) {
             return;
         }
-        new Thread() {
-            public void run() {
-
-                try {
-                    Player playMP3 = new Player(FrameView.class.getResourceAsStream("/com/jpexs/games/rpsls/sound/" + soundFile));
-                    playMP3.play();
-                } catch (Exception exc) {
-                    //ignore
-                }
-            }
-        }.start();
+        soundPlayer.playFile(soundFile);
     }
 }
