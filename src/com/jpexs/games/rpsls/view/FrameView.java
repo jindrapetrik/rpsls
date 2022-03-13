@@ -1,5 +1,6 @@
 package com.jpexs.games.rpsls.view;
 
+import com.jpexs.games.rpsls.model.MoveListener;
 import com.jpexs.games.rpsls.Main;
 import com.jpexs.games.rpsls.model.Attack;
 import com.jpexs.games.rpsls.model.Move;
@@ -115,6 +116,10 @@ public class FrameView extends JFrame implements IRpslView {
     private int animationPhases[][];
 
     private Timer animationTimer;
+
+    private Point moveFrom;
+    private Point moveTo;
+    private int movePhase = 0;
 
     private void setTrapPhase(int trapPhase) {
         this.trapPhase = trapPhase;
@@ -340,9 +345,9 @@ public class FrameView extends JFrame implements IRpslView {
                 super.paintComponent(g);
 
                 Attack attack = model.getAttack();
-                if (!model.proceedRequired(myTeam)) {
+                /*if (!model.proceedRequired(myTeam)) {
                     attack = null;
-                }
+                }*/
                 for (int y = 0; y < model.getBoardHeight(); y++) {
                     for (int x = 0; x < model.getBoardWidth(); x++) {
                         if ((x + y % 2) % 2 == 0) {
@@ -411,6 +416,14 @@ public class FrameView extends JFrame implements IRpslView {
                         }
 
                         int animationPhase = animationPhases[x][y];
+
+                        if (movePhase > 0) {
+                            if (location.equals(moveFrom)) {
+                                paintMove(g);
+                                continue;
+                            }
+                        }
+
                         paintPerson(g, deltaX + BOARD_BORDER + x * FIELD_SIZE, deltaY + BOARD_BORDER + SPRITE_Y_OFFSET + y * FIELD_SIZE, team, weapon, weaponVisible, specialItem, animationPhase);
                     }
                 }
@@ -438,6 +451,99 @@ public class FrameView extends JFrame implements IRpslView {
 
                 if (model.getTeamPhase(myTeam) == Phase.WEAPONS) {
                     paintShuffleStartOptions(g);
+                }
+            }
+
+            private void paintMove(Graphics g) {
+                int movingTeam = model.getTeamAt(myTeam, moveFrom);
+                int fromXpx = BOARD_BORDER + moveFrom.getX() * FIELD_SIZE;
+                int fromYpx = BOARD_BORDER + moveFrom.getY() * FIELD_SIZE + SPRITE_Y_OFFSET;
+                int toXpx = BOARD_BORDER + moveTo.getX() * FIELD_SIZE;
+                int toYpx = BOARD_BORDER + moveTo.getY() * FIELD_SIZE + SPRITE_Y_OFFSET;
+
+                boolean weaponVisible = model.isWeaponVisibleAt(myTeam, moveFrom);
+                Weapon weapon = model.getWeaponAt(myTeam, moveFrom);
+
+                if (moveFrom.getX() < moveTo.getX()) { //right
+                    int spriteY;
+                    if (movingTeam == myTeam) {
+                        if (weaponVisible) {
+                            spriteY = 1;
+                        } else {
+                            spriteY = 0;
+                        }
+                    } else {
+                        if (weaponVisible) {
+                            spriteY = 2;
+                        } else {
+                            spriteY = 3;
+                        }
+                    }
+                    paintSprite(g, fromXpx, fromYpx, movingTeam, 10 + 2 * (movePhase - 1), spriteY, false);
+                    paintSprite(g, fromXpx + SPRITE_WIDTH, fromYpx, movingTeam, 11 + 2 * (movePhase - 1), spriteY, false);
+                    if (weapon != null) {
+                        paintSprite(g, fromXpx + 33 * movePhase, fromYpx, movingTeam, 2 + weapon.ordinal(), spriteY, false);
+                    }
+                } else if (moveFrom.getX() > moveTo.getX()) { //left
+                    int spriteY;
+                    if (movingTeam == myTeam) {
+                        if (weaponVisible) {
+                            spriteY = 5;
+                        } else {
+                            spriteY = 4;
+                        }
+                    } else {
+                        if (weaponVisible) {
+                            spriteY = 6;
+                        } else {
+                            spriteY = 7;
+                        }
+                    }
+                    paintSprite(g, toXpx, toYpx, movingTeam, 12 - 2 * (movePhase - 1), spriteY, false);
+                    paintSprite(g, toXpx + SPRITE_WIDTH, toYpx, movingTeam, 13 - 2 * (movePhase - 1), spriteY, false);
+                    if (weapon != null) {
+                        paintSprite(g, fromXpx - 33 * movePhase, fromYpx, movingTeam, 2 + weapon.ordinal(), spriteY - 4, false);
+                    }
+                } else if (moveFrom.getY() < moveTo.getY()) { //down
+                    int spriteY;
+                    if (movingTeam == myTeam) {
+                        if (weaponVisible) {
+                            spriteY = 2;
+                        } else {
+                            spriteY = 0;
+                        }
+                    } else {
+                        if (weaponVisible) {
+                            spriteY = 4;
+                        } else {
+                            spriteY = 6;
+                        }
+                    }
+                    paintSprite(g, fromXpx, fromYpx, movingTeam, 15 - (movePhase - 1), spriteY, false);
+                    paintSprite(g, fromXpx, fromYpx + SPRITE_HEIGHT, movingTeam, 15 - (movePhase - 1), spriteY + 1, false);
+                    if (weapon != null) {
+                        paintSprite(g, fromXpx, fromYpx + 33 * movePhase, movingTeam, 2 + weapon.ordinal(), spriteY / 2, false);
+                    }
+                } else { //from.Y > to.Y,  up
+                    int spriteY;
+                    if (movingTeam == myTeam) {
+                        if (weaponVisible) {
+                            spriteY = 2;
+                        } else {
+                            spriteY = 0;
+                        }
+                    } else {
+                        if (weaponVisible) {
+                            spriteY = 4;
+                        } else {
+                            spriteY = 6;
+                        }
+                    }
+                    paintSprite(g, fromXpx, toYpx, movingTeam, 14 + (movePhase - 1), spriteY, false);
+                    paintSprite(g, fromXpx, toYpx + SPRITE_HEIGHT, movingTeam, 14 + (movePhase - 1), spriteY + 1, false);
+                    if (weapon != null) {
+                        paintSprite(g, fromXpx, fromYpx - 33 * movePhase, movingTeam, 2 + weapon.ordinal(), spriteY / 2, false);
+                    }
                 }
             }
 
@@ -640,6 +746,7 @@ public class FrameView extends JFrame implements IRpslView {
                     if (model.isWeaponSelectionNeeded(myTeam)) {
                         Weapon weaponToSelect = hilightedWeapon;
                         if (weaponToSelect != null) {
+                            fireProceed();
                             fireSelectWeapon(weaponToSelect);
                         }
                         return;
@@ -819,12 +926,45 @@ public class FrameView extends JFrame implements IRpslView {
             }
         });
 
+        model.addMoveListener(new MoveListener() {
+            @Override
+            public void move(Point source, Point destination) {
+                moveFrom = source.toTeamPoint(myTeam);
+                moveTo = destination.toTeamPoint(myTeam);
+                movePhase = 1;
+                contentPanel.repaint();
+
+                final Timer timer = new Timer();
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        movePhase = 2;
+                        contentPanel.repaint();
+                        timer.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                fireProceed();
+                                moveFrom = null;
+                                moveTo = null;
+                                movePhase = 0;
+                            }
+                        }, 250);
+                    }
+                }, 250);
+
+            }
+        });
+
         model.addAttackListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 selectedPoint = null;
                 setFightPhase(0);
                 contentPanel.repaint();
+
+                if (model.isDuelActive()) {
+                    return;
+                }
 
                 final Timer timer = new Timer();
                 timer.schedule(new TimerTask() {
@@ -988,8 +1128,8 @@ public class FrameView extends JFrame implements IRpslView {
     }
 
     private int getWeaponSelectionTop() {
-        Point source = model.getDuelSource();
-        Point target = model.getDuelTarget();
+        Point source = model.getAttack().source;
+        Point target = model.getAttack().target;
 
         int minY = Math.min(source.getYForTeam(myTeam), target.getYForTeam(myTeam));
         int maxY = Math.max(source.getYForTeam(myTeam), target.getYForTeam(myTeam));

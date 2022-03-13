@@ -13,6 +13,8 @@ import java.util.Random;
  */
 public class RpslsModel {
 
+    private static final boolean DEBUG_MODE = false;
+
     public static final int NUM_TEAMS = 2;
 
     private Person[][] board;
@@ -25,14 +27,15 @@ public class RpslsModel {
 
     private int winner = NO_TEAM;
 
-    private Point[] duel = null;
     private Weapon[] duelNewWeapons = null;
+    private boolean inDuel = false;
 
     private List<ActionListener> modelUpdateListeners = new ArrayList<>();
     private List<ActionListener> proceedRequiredListeners = new ArrayList<>();
     private List<ActionListener> attackListeners = new ArrayList<>();
     private List<ActionListener> flagFoundListeners = new ArrayList<>();
     private List<ActionListener> trapFoundListeners = new ArrayList<>();
+    private List<MoveListener> moveListeners = new ArrayList<>();
 
     private boolean proceed[];
 
@@ -94,6 +97,14 @@ public class RpslsModel {
         return lastMove;
     }
 
+    public void addMoveListener(MoveListener listener) {
+        moveListeners.add(listener);
+    }
+
+    public void removeMoveListener(MoveListener listener) {
+        moveListeners.remove(listener);
+    }
+
     public void addProceedRequiredListener(ActionListener listener) {
         proceedRequiredListeners.add(listener);
     }
@@ -132,6 +143,12 @@ public class RpslsModel {
 
     public void removeAttackListener(ActionListener listener) {
         attackListeners.remove(listener);
+    }
+
+    private void fireMove(Point source, Point destination) {
+        for (MoveListener listener : moveListeners) {
+            listener.move(source, destination);
+        }
     }
 
     private void fireProceedRequired() {
@@ -187,46 +204,48 @@ public class RpslsModel {
             }
         }
 
-        duel = null;
+        attack = null;
         duelNewWeapons = null;
         teamOnTurn = NO_TEAM;
         proceed = new boolean[]{true, true};
         proceedAction = null;
     }
 
-    public Point getDuelSource() {
-        if (duel == null) {
-            return null;
+    private synchronized void requestProceed(ActionListener proceedAction) {
+        if (DEBUG_MODE) {
+            System.out.println("requesting proceed...");
+            if (proceedAction == null) {
+                System.out.println("..with no action");
+            }
         }
-        return duel[0];
-    }
-
-    public Point getDuelTarget() {
-        if (duel == null) {
-            return null;
-        }
-        return duel[1];
-    }
-
-    private void requestProceed(ActionListener proceedAction) {
         proceed = new boolean[]{false, false};
         this.proceedAction = proceedAction;
         fireProceedRequired();
     }
 
-    public boolean proceedRequired(int team) {
+    public synchronized boolean proceedRequired(int team) {
         return !proceed[team];
     }
 
     public synchronized void proceed(int team) {
         proceed[team] = true;
-        if (!proceedRequired() && proceedAction != null) {
-            proceedAction.actionPerformed(new ActionEvent(this, 0, "PROCEED"));
-            proceedAction = null;
+        if (!proceedRequired()) {
+            if (proceedAction != null) {
+                if (DEBUG_MODE) {
+                    System.out.println("proceeded, action called");
+                }
+                ActionListener lastProceedAction = proceedAction;
+                proceedAction = null;
+                lastProceedAction.actionPerformed(new ActionEvent(this, 0, "PROCEED"));
+            } else {
+                if (DEBUG_MODE) {
+                    System.out.println("proceeded");
+                }
+            }
         }
     }
 
-    private boolean proceedRequired() {
+    private synchronized boolean proceedRequired() {
         return !proceed[0] || !proceed[1];
     }
 
@@ -416,9 +435,8 @@ public class RpslsModel {
     }
 
     public synchronized boolean isWeaponSelectionNeeded(int team) {
-        if (duel != null) {
-            Person attackingPerson = getPersonOnLocation(duel[0]);
-            if (attackingPerson.getTeam() == team) {
+        if (inDuel) {
+            if (attack.sourceTeam == team) {
                 return duelNewWeapons[0] == null;
             } else {
                 return duelNewWeapons[1] == null;
@@ -432,23 +450,20 @@ public class RpslsModel {
         if (!isWeaponSelectionNeeded(team)) {
             throw new RuntimeException("Weapon already selected or not in a duel");
         }
-        Person attackingPerson = getPersonOnLocation(duel[0]);
-        if (attackingPerson.getTeam() == team) {
+        if (attack.sourceTeam == team) {
             duelNewWeapons[0] = weapon;
         } else {
             duelNewWeapons[1] = weapon;
         }
         if (duelNewWeapons[0] != null && duelNewWeapons[1] != null) {
-            Point sourcePos = duel[0];
-            Point targetPos = duel[1];
-            Person sourcePerson = getPersonOnLocation(sourcePos);
-            Person targetPerson = getPersonOnLocation(targetPos);
+            Person sourcePerson = getPersonOnLocation(attack.source);
+            Person targetPerson = getPersonOnLocation(attack.target);
 
             sourcePerson.setWeapon(duelNewWeapons[0]);
             targetPerson.setWeapon(duelNewWeapons[1]);
-            duel = null;
+            inDuel = false;
             duelNewWeapons = null;
-            move(sourcePerson.getTeam(), sourcePos, targetPos);
+            doMove(sourcePerson.getTeam(), attack.source, attack.target);
         } else {
             fireUpdate();
         }
@@ -458,14 +473,31 @@ public class RpslsModel {
         if (!isValidMove(team, source, destination)) {
             throw new RuntimeException("Invalid move");
         }
+        if (DEBUG_MODE) {
+            System.out.println("move started...");
+        }
         Person attackingPerson = getPersonOnLocation(source);
         Person defendingPerson = getPersonOnLocation(destination);
         Move move = new Move(source, destination, attackingPerson == null ? NO_TEAM : attackingPerson.getTeam(), defendingPerson == null ? NO_TEAM : defendingPerson.getTeam());
 
+        lastMove = move;
+        requestProceed(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                doMove(team, source, destination);
+            }
+        });
+        fireMove(source, destination);
+
+    }
+
+    private synchronized void doMove(int team, Point source, Point destination) {
+        Person attackingPerson = getPersonOnLocation(source);
+        Person defendingPerson = getPersonOnLocation(destination);
+
         if (defendingPerson != null) {
             fireUpdate();
             if (defendingPerson.getSpecialItem() == SpecialItem.FLAG) {
-                lastMove = move;
                 setPersonOnLocation(destination, attackingPerson);
                 setPersonOnLocation(source, null);
                 attackingPerson.setSpecialItem(SpecialItem.OPONENT_FLAG);
@@ -473,7 +505,6 @@ public class RpslsModel {
                 win();
                 fireFlagFound();
             } else if (defendingPerson.getSpecialItem() == SpecialItem.TRAP) {
-                lastMove = move;
                 fireTrapFound();
                 requestProceed(new ActionListener() {
                     @Override
@@ -486,10 +517,7 @@ public class RpslsModel {
             } else if (defendingPerson.getWeapon() == attackingPerson.getWeapon()
                     || attackingPerson.getSpecialItem() == SpecialItem.CHOOSER
                     || defendingPerson.getSpecialItem() == SpecialItem.CHOOSER) {
-                duel = new Point[]{
-                    source,
-                    destination
-                };
+                inDuel = true;
                 if (attackingPerson.getSpecialItem() == SpecialItem.CHOOSER
                         && defendingPerson.getSpecialItem() != SpecialItem.CHOOSER) {
                     duelNewWeapons = new Weapon[]{null, defendingPerson.getWeapon()};
@@ -510,12 +538,13 @@ public class RpslsModel {
                     attackingPerson.setWeaponVisible(true);
                     defendingPerson.setWeaponVisible(true);
                 }
-                fireUpdate();
+                setAttack(new Attack(source, destination, attackingPerson.getWeapon(), defendingPerson.getWeapon(), attackingPerson.getTeam(), defendingPerson.getTeam()));
+                requestProceed(null);
+                fireAttack();
             } else {
                 attackingPerson.setWeaponVisible(true);
                 defendingPerson.setWeaponVisible(true);
                 setAttack(new Attack(source, destination, attackingPerson.getWeapon(), defendingPerson.getWeapon(), attackingPerson.getTeam(), defendingPerson.getTeam()));
-                fireAttack();
                 requestProceed(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
@@ -527,10 +556,10 @@ public class RpslsModel {
                             setPersonOnLocation(source, null);
                         }
                         setAttack(null);
-                        lastMove = move;
                         advanceTurn();
                     }
                 });
+                fireAttack();
             }
         } else {
             setPersonOnLocation(destination, attackingPerson);
@@ -694,7 +723,7 @@ public class RpslsModel {
     }
 
     public boolean isDuelActive() {
-        return duel != null;
+        return inDuel;
     }
 
 }

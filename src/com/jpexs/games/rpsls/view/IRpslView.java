@@ -1,5 +1,6 @@
 package com.jpexs.games.rpsls.view;
 
+import com.jpexs.games.rpsls.model.MoveListener;
 import java.awt.event.ActionListener;
 
 /**

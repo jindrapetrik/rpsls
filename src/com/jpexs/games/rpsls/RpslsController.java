@@ -5,7 +5,7 @@ import com.jpexs.games.rpsls.model.Point;
 import com.jpexs.games.rpsls.model.RpslsModel;
 import com.jpexs.games.rpsls.model.Weapon;
 import com.jpexs.games.rpsls.view.IRpslView;
-import com.jpexs.games.rpsls.view.MoveListener;
+import com.jpexs.games.rpsls.model.MoveListener;
 import com.jpexs.games.rpsls.view.NetworkView;
 import com.jpexs.games.rpsls.view.SelectWeaponListener;
 import com.jpexs.games.rpsls.view.SetPointListener;

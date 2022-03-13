@@ -1,5 +1,6 @@
 package com.jpexs.games.rpsls.view;
 
+import com.jpexs.games.rpsls.model.MoveListener;
 import com.jpexs.games.rpsls.Main;
 import com.jpexs.games.rpsls.model.NetworkPackets;
 import com.jpexs.games.rpsls.model.Point;

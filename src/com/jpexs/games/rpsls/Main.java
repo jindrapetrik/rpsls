@@ -37,12 +37,13 @@ public class Main {
 
     private static final GameType DEFAULT_GAME_TYPE = GameType.SMALL;
 
-    public static final int PROTOCOL_VERSION_MAJOR = 2;
+    public static final int PROTOCOL_VERSION_MAJOR = 3;
     public static final int PROTOCOL_VERSION_MINOR = 0;
 
     /*
       Protocol changes:
         2.0 - scissors cuts paper fix
+        3.0 - requested proceed after move and after same weapons attack
      */
     private static boolean forciblyTerminated = false;
     private static ServerSocket serverSocket;

@@ -1,4 +1,4 @@
-package com.jpexs.games.rpsls.view;
+package com.jpexs.games.rpsls.model;
 
 import com.jpexs.games.rpsls.model.Point;
 

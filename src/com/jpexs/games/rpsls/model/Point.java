@@ -40,6 +40,10 @@ public class Point {
         return gameType.getBoardHeight() - y - 1;
     }
 
+    public Point toTeamPoint(int team) {
+        return new Point(getXForTeam(team), getYForTeam(team), team, gameType);
+    }
+
     public int getBaseTeamX() {
         if (observingTeam == 0) {
             return gameType.getBoardWidth() - x - 1;
