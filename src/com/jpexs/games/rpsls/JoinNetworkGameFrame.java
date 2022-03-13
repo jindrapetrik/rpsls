@@ -36,11 +36,11 @@ public class JoinNetworkGameFrame extends JFrame {
         addressLabel.setAlignmentX(0.5f);
         container.add(addressLabel);
 
-        JTextField addressField = new JTextField("localhost", 10);
+        JTextField addressField = new JTextField(Main.getConfig("join_network_game.address", "localhost"), 10);
         container.add(addressField);
 
         JPanel portPanel = new JPanel(new FlowLayout());
-        JTextField portField = new JTextField("1024", 5);
+        JTextField portField = new JTextField(Main.getConfig("join_network_game.port", "1024"), 5);
 
         portPanel.add(new JLabel("Port:"));
         portPanel.add(portField);
@@ -57,6 +57,10 @@ public class JoinNetworkGameFrame extends JFrame {
                 }
                 try {
                     int port = Integer.parseInt(portField.getText());
+
+                    Main.setConfig("join_network_game.address", addressField.getText());
+                    Main.setConfig("join_network_game.port", "" + port);
+
                     setVisible(false);
                     Main.joinNetworkGame(addressField.getText(), port);
 

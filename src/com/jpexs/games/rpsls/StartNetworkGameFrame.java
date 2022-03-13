@@ -34,7 +34,7 @@ public class StartNetworkGameFrame extends JFrame {
         Container container = getContentPane();
         container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
         JPanel portPanel = new JPanel(new FlowLayout());
-        JTextField portField = new JTextField("1024", 5);
+        JTextField portField = new JTextField(Main.getConfig("start_network_game.port", "1024"), 5);
 
         portPanel.add(new JLabel("Port:"));
         portPanel.add(portField);
@@ -44,6 +44,7 @@ public class StartNetworkGameFrame extends JFrame {
         gameTypeLabel.setAlignmentX(0.5f);
         container.add(gameTypeLabel);
         JComboBox<GameType> gameTypeComboBox = new JComboBox<>(GameType.values());
+        gameTypeComboBox.setSelectedIndex(Integer.parseInt(Main.getConfig("start_network_game.game_type", "0")));
         container.add(gameTypeComboBox);
 
         JPanel buttonsPanel = new JPanel(new FlowLayout());
@@ -53,6 +54,10 @@ public class StartNetworkGameFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 try {
                     int port = Integer.parseInt(portField.getText());
+
+                    Main.setConfig("start_network_game.port", "" + port);
+                    Main.setConfig("start_network_game.game_type", "" + gameTypeComboBox.getSelectedIndex());
+
                     setVisible(false);
                     Main.startNetworkGame(port, (GameType) gameTypeComboBox.getSelectedItem());
 

@@ -14,13 +14,22 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -35,6 +44,12 @@ import javax.swing.UnsupportedLookAndFeelException;
  */
 public class Main {
 
+    private static Map<String, String> config = new LinkedHashMap<>();
+
+    public static final String SHORT_APP_NAME = "rpsls";
+
+    public static final String CONFIG_NAME = "config.bin";
+
     public static final String VERSION_STRING = "v1.1";
 
     public static final String VENDOR_NAME = "JPEXS";
@@ -43,6 +58,9 @@ public class Main {
 
     public static final int PROTOCOL_VERSION_MAJOR = 4;
     public static final int PROTOCOL_VERSION_MINOR = 0;
+
+    public static final int CONFIG_VERSION_MAJOR = 1;
+    public static final int CONFIG_VERSION_MINOR = 0;
 
     /*
       Protocol changes:
@@ -236,6 +254,7 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        readConfig();
         initUi();
         mainMenu();
     }
@@ -300,4 +319,156 @@ public class Main {
         f.setIconImages(imageIcons);
     }
 
+    private static final File unspecifiedFile = new File("unspecified");
+
+    private static File homeDirectory = unspecifiedFile;
+
+    private enum OSId {
+        WINDOWS, OSX, UNIX
+    }
+
+    private static OSId getOSId() {
+        PrivilegedAction<String> doGetOSName = new PrivilegedAction<String>() {
+            @Override
+            public String run() {
+                return System.getProperty("os.name");
+            }
+        };
+        OSId id = OSId.UNIX;
+        String osName = AccessController.doPrivileged(doGetOSName);
+        if (osName != null) {
+            if (osName.toLowerCase().startsWith("mac os x")) {
+                id = OSId.OSX;
+            } else if (osName.contains("Windows")) {
+                id = OSId.WINDOWS;
+            }
+        }
+        return id;
+    }
+
+    public static File getConfigFile() {
+        String homeDir = getHomeDir();
+        return new File(homeDir + CONFIG_NAME);
+    }
+
+    public static String getHomeDir() {
+        if (homeDirectory == unspecifiedFile) {
+            homeDirectory = null;
+            String userHome = null;
+            try {
+                userHome = System.getProperty("user.home");
+            } catch (SecurityException ignore) {
+            }
+            if (userHome != null) {
+                String applicationId = SHORT_APP_NAME;
+                OSId osId = getOSId();
+                if (osId == OSId.WINDOWS) {
+                    File appDataDir = null;
+                    try {
+                        String appDataEV = System.getenv("APPDATA");
+                        if ((appDataEV != null) && (appDataEV.length() > 0)) {
+                            appDataDir = new File(appDataEV);
+                        }
+                    } catch (SecurityException ignore) {
+                    }
+                    String vendorId = VENDOR_NAME;
+                    if ((appDataDir != null) && appDataDir.isDirectory()) {
+                        // ${APPDATA}\{vendorId}\${applicationId}
+                        String path = vendorId + "\\" + applicationId + "\\";
+                        homeDirectory = new File(appDataDir, path);
+                    } else {
+                        // ${userHome}\Application Data\${vendorId}\${applicationId}
+                        String path = "Application Data\\" + vendorId + "\\" + applicationId + "\\";
+                        homeDirectory = new File(userHome, path);
+                    }
+                } else if (osId == OSId.OSX) {
+                    // ${userHome}/Library/Application Support/${applicationId}
+                    String path = "Library/Application Support/" + applicationId + "/";
+                    homeDirectory = new File(userHome, path);
+                } else {
+                    // ${userHome}/.${applicationId}/
+                    String path = "." + applicationId + "/";
+                    homeDirectory = new File(userHome, path);
+                }
+            } else {
+                //no home, then use application directory
+                homeDirectory = new File(".");
+            }
+        }
+        if (!homeDirectory.exists()) {
+            if (!homeDirectory.mkdirs()) {
+                if (!homeDirectory.exists()) {
+                    homeDirectory = new File("."); //fallback to current directory
+                }
+            }
+        }
+        String ret = homeDirectory.getAbsolutePath();
+        if (!ret.endsWith(File.separator)) {
+            ret += File.separator;
+        }
+        return ret;
+    }
+
+    public static void setConfig(String key, String value) {
+        config.put(key, value);
+    }
+
+    public static String getConfig(String key, String defaultVal) {
+        if (!config.containsKey(key)) {
+            return defaultVal;
+        }
+        return config.get(key);
+    }
+
+    public static void saveConfig() {
+        File configFile = getConfigFile();
+        try (FileOutputStream fos = new FileOutputStream(configFile);
+                DataOutputStream daos = new DataOutputStream(fos)) {
+            daos.write(CONFIG_VERSION_MAJOR);
+            daos.write(CONFIG_VERSION_MINOR);
+            daos.writeInt(config.size());
+            for (String key : config.keySet()) {
+                byte data[] = key.getBytes("UTF-8");
+                daos.writeInt(data.length);
+                daos.write(data);
+
+                data = config.get(key).getBytes("UTF-8");
+                daos.writeInt(data.length);
+                daos.write(data);
+            }
+        } catch (IOException ex) {
+            //ignore 
+        }
+    }
+
+    public static void readConfig() {
+        Map<String, String> newConfig = new LinkedHashMap<>();
+        File configFile = getConfigFile();
+        try (FileInputStream fis = new FileInputStream(configFile);
+                DataInputStream dais = new DataInputStream(fis)) {
+            int versionMajor = dais.read();
+            if (versionMajor != CONFIG_VERSION_MAJOR) {
+                return;
+            }
+            int versionMinor = dais.read();
+            int size = dais.readInt();
+            for (int i = 0; i < size; i++) {
+                int len;
+                byte data[];
+
+                len = dais.readInt();
+                data = new byte[len];
+                dais.readFully(data);
+                String key = new String(data, "UTF-8");
+                len = dais.readInt();
+                data = new byte[len];
+                dais.readFully(data);
+                String value = new String(data, "UTF-8");
+                newConfig.put(key, value);
+            }
+            config = newConfig;
+        } catch (IOException ex) {
+            //ignore
+        }
+    }
 }

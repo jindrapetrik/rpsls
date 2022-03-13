@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Entering attack sound (bell)
 - Game type selection - RPSLS/RPS/RPSLS_LARGE
 - New person type - chooser - in RPSLS_LARGE game type
+- Saving configuration (last used address/port/gametype)
 
 ## [1.1] - 2022-03-12
 - Fixed scissors not cutting paper -> paper won in that case

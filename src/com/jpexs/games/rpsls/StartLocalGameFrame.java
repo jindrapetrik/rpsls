@@ -36,6 +36,7 @@ public class StartLocalGameFrame extends JFrame {
         gameTypeLabel.setAlignmentX(0.5f);
         container.add(gameTypeLabel);
         JComboBox<GameType> gameTypeComboBox = new JComboBox<>(GameType.values());
+        gameTypeComboBox.setSelectedIndex(Integer.parseInt(Main.getConfig("start_local_game.game_type", "0")));
         container.add(gameTypeComboBox);
 
         JPanel buttonsPanel = new JPanel(new FlowLayout());
@@ -43,6 +44,7 @@ public class StartLocalGameFrame extends JFrame {
         okButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                Main.setConfig("start_local_game.game_type", "" + gameTypeComboBox.getSelectedIndex());
                 setVisible(false);
                 Main.startLocalGame((GameType) gameTypeComboBox.getSelectedItem());
             }

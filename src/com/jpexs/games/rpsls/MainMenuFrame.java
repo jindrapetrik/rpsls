@@ -8,6 +8,8 @@ import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -35,7 +37,14 @@ public class MainMenuFrame extends JFrame {
         }
 
         setTitle("RPSLS " + Main.VERSION_STRING + " by " + Main.VENDOR_NAME);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                Main.saveConfig();
+                System.exit(0);
+            }
+
+        });
         Container container = getContentPane();
 
         JPanel menuItemsPanel = new JPanel(new GridLayout(4, 1));
@@ -70,6 +79,7 @@ public class MainMenuFrame extends JFrame {
         exitGameButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                Main.saveConfig();
                 System.exit(0);
             }
         });
