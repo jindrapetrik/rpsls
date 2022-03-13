@@ -595,8 +595,11 @@ public class FrameView extends JFrame implements IRpslView {
             private void paintAttack(Graphics g, Attack attack) {
                 int teamLeft = attack.sourceTeam;
                 int teamRight = attack.targetTeam;
-                Weapon weaponLeft = attack.sourceWeapon;
-                Weapon weaponRight = attack.targetWeapon;
+                Weapon sourceWeapon = model.getWeaponAt(myTeam, attack.source);
+                Weapon targetWeapon = model.getWeaponAt(myTeam, attack.target);
+
+                Weapon weaponLeft = sourceWeapon;
+                Weapon weaponRight = targetWeapon;
                 boolean switchSides = false;
                 if (attack.target.getXForTeam(myTeam) < attack.source.getXForTeam(myTeam)) {
                     switchSides = true;
@@ -608,8 +611,8 @@ public class FrameView extends JFrame implements IRpslView {
                 if (switchSides) {
                     teamLeft = attack.targetTeam;
                     teamRight = attack.sourceTeam;
-                    weaponLeft = attack.targetWeapon;
-                    weaponRight = attack.sourceWeapon;
+                    weaponLeft = targetWeapon;
+                    weaponRight = sourceWeapon;
                     attackPosLeft = attack.target.getXForTeam(myTeam);
                 }
                 int attackPosTop = attack.target.getYForTeam(myTeam);
