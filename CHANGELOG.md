@@ -1,6 +1,9 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [2.1.1] - 2025-12-28
+- UI scale is not set to 1.0
+
 ## [2.1] - 2022-03-15
 - Recompiled for Java 8
 

@@ -50,7 +50,7 @@ public class Main {
 
     public static final String CONFIG_NAME = "config.bin";
 
-    public static final String VERSION_STRING = "v2.1";
+    public static final String VERSION_STRING = "v2.1.1";
 
     public static final String VENDOR_NAME = "JPEXS";
 
@@ -260,7 +260,7 @@ public class Main {
     }
 
     private static void initUi() {
-        System.setProperty("sun.java2d.uiScale", "1.0");
+        //System.setProperty("sun.java2d.uiScale", "1.0");
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
